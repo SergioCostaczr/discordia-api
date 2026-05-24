@@ -24,6 +24,9 @@ public class RoomService {
     private final UserRepository userRepository;
 
     public RoomResponse create(RoomRequest request, String username) {
+        roomRepository.findByName(request.name()).ifPresent(room -> {
+            throw new IllegalStateException("Room with name " + request.name() + " already exists");
+        });
         var admin = userRepository.findByUsername(username).orElseThrow(()-> new UsernameNotFoundException("Usuário não encontrado"));
 
         var room = Room.builder()
