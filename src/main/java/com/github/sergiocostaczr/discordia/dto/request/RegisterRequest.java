@@ -1,4 +1,4 @@
-package com.github.sergiocostaczr.discordia.dto;
+package com.github.sergiocostaczr.discordia.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

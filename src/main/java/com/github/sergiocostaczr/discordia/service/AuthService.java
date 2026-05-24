@@ -1,8 +1,8 @@
 package com.github.sergiocostaczr.discordia.service;
 
-import com.github.sergiocostaczr.discordia.dto.AuthResponse;
-import com.github.sergiocostaczr.discordia.dto.LoginRequest;
-import com.github.sergiocostaczr.discordia.dto.RegisterRequest;
+import com.github.sergiocostaczr.discordia.dto.response.AuthResponse;
+import com.github.sergiocostaczr.discordia.dto.request.LoginRequest;
+import com.github.sergiocostaczr.discordia.dto.request.RegisterRequest;
 import com.github.sergiocostaczr.discordia.model.entity.User;
 import com.github.sergiocostaczr.discordia.model.enums.Role;
 import com.github.sergiocostaczr.discordia.model.repo.UserRepository;

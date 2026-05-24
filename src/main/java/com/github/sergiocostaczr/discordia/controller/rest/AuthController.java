@@ -1,8 +1,8 @@
 package com.github.sergiocostaczr.discordia.controller.rest;
 
-import com.github.sergiocostaczr.discordia.dto.AuthResponse;
-import com.github.sergiocostaczr.discordia.dto.LoginRequest;
-import com.github.sergiocostaczr.discordia.dto.RegisterRequest;
+import com.github.sergiocostaczr.discordia.dto.response.AuthResponse;
+import com.github.sergiocostaczr.discordia.dto.request.LoginRequest;
+import com.github.sergiocostaczr.discordia.dto.request.RegisterRequest;
 import com.github.sergiocostaczr.discordia.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
