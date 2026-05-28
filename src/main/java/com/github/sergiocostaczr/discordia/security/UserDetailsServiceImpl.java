@@ -1,6 +1,6 @@
 package com.github.sergiocostaczr.discordia.security;
 
-import com.github.sergiocostaczr.discordia.model.repo.UserRepository;
+import com.github.sergiocostaczr.discordia.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
