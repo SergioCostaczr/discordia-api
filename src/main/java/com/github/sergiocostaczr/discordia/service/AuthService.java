@@ -5,7 +5,7 @@ import com.github.sergiocostaczr.discordia.dto.request.LoginRequest;
 import com.github.sergiocostaczr.discordia.dto.request.RegisterRequest;
 import com.github.sergiocostaczr.discordia.model.entity.User;
 import com.github.sergiocostaczr.discordia.model.enums.Role;
-import com.github.sergiocostaczr.discordia.model.repo.UserRepository;
+import com.github.sergiocostaczr.discordia.repository.UserRepository;
 import com.github.sergiocostaczr.discordia.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;

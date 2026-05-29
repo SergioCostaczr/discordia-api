@@ -1,4 +1,4 @@
-package com.github.sergiocostaczr.discordia.model.repo;
+package com.github.sergiocostaczr.discordia.repository;
 
 import com.github.sergiocostaczr.discordia.model.entity.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
