@@ -10,7 +10,7 @@ public record ChatMessageResponse(
         UUID roomId,
         String senderUsername,
         String content,
-        LocalDateTime sendAt
+        LocalDateTime sentAt
 ) {
     public static ChatMessageResponse from(Message message) {
         return new ChatMessageResponse(
