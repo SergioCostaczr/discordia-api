@@ -15,7 +15,7 @@ public class RabbitMQConfig {
 
     public static final String GAME_EXCHANGE = "game.exchange";
     public static final String GAME_QUEUE    = "game.queue";
-    public static final String GAME_RK       = "game.*";
+    public static final String GAME_RK       = "game";
 
     @Bean
     public TopicExchange chatExchange() {
