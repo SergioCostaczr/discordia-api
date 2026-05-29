@@ -1,6 +1,5 @@
 package com.github.sergiocostaczr.discordia.service;
 
-import com.github.sergiocostaczr.discordia.dto.*;
 import com.github.sergiocostaczr.discordia.dto.request.ChatMessageRequest;
 import com.github.sergiocostaczr.discordia.dto.response.ChatMessageResponse;
 import com.github.sergiocostaczr.discordia.messaging.producer.MessageProducer;

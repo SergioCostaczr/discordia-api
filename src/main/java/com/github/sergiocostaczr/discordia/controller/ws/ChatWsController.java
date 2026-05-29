@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @Controller
@@ -19,8 +20,9 @@ public class ChatWsController {
     @MessageMapping("/chat/{roomId}")
     public void sendMessage(@DestinationVariable UUID roomId,
                             @Payload ChatMessageRequest request,
-                            @AuthenticationPrincipal UserDetails userDetails) {
+                            Principal principal) {
 
-        chatService.sendMessage(roomId, userDetails.getUsername(), request);
+        chatService.sendMessage(roomId, principal.getName(), request);
+
     }
 }
