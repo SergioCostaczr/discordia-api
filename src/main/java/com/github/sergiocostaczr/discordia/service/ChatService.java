@@ -37,7 +37,7 @@ public class ChatService {
     }
 
     public Page<ChatMessageResponse> getHistory(UUID roomId, int page, int size) {
-        var pageable = PageRequest.of(page, size);
+        var pageable = PageRequest.of(page, size, Sort.by("sentAt").descending());
         return messageRepository.findByRoomIdOrderBySentAtDesc(roomId, pageable)
                 .map(ChatMessageResponse::from);
     }
