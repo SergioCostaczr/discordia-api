@@ -136,6 +136,7 @@
           const me = document.getElementById('username').value.trim();
           addMessage(msg, msg.senderUsername === me);
           log('Mensagem recebida de ' + msg.senderUsername);
+
         });
       },
       function (error) {
@@ -145,6 +146,20 @@
       }
     );
   }
+  // inscreve no tópico privado de desafios
+  stompClient.subscribe('/user/queue/challenges', function(frame) {
+    const data = JSON.parse(frame.body);
+    addMessage('⚔️ Desafio recebido de ' + data.challengerUsername + ' | roundId: ' + data.roundId, false, true);
+    log('Desafio recebido: ' + JSON.stringify(data));
+  });
+
+  // inscreve no tópico privado de resultados
+  stompClient.subscribe('/user/queue/game-results', function(frame) {
+    const data = JSON.parse(frame.body);
+    const winner = data.winnerUsername ? data.winnerUsername + ' venceu!' : 'Empate!';
+    addMessage('🏆 Resultado: ' + winner + ' | ' + data.challengerUsername + ': ' + data.challengerMove + ' x ' + data.challengedUsername + ': ' + data.challengedMove, false, true);
+    log('Resultado: ' + JSON.stringify(data));
+  });
 
   function disconnect() {
     if (stompClient) stompClient.disconnect();
