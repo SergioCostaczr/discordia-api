@@ -10,6 +10,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/games")
 @RequiredArgsConstructor
@@ -24,5 +26,23 @@ public class GameController {
 
         return ResponseEntity.status(201)
                 .body(gameService.createChallenge(request, userDetails.getUsername()));
+    }
+
+    @PostMapping("/{roundId}/accept")
+    public ResponseEntity<Void> accept(
+            @PathVariable UUID roundId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        gameService.acceptChallenge(roundId, userDetails.getUsername());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{roundId}/decline")
+    public ResponseEntity<Void> decline(
+            @PathVariable UUID roundId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        gameService.declineChallenge(roundId, userDetails.getUsername());
+        return ResponseEntity.ok().build();
     }
 }

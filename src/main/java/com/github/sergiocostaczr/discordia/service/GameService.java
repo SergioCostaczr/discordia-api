@@ -77,8 +77,7 @@ public class GameService {
         var player = userRepository.findById(event.playerId())
                 .orElseThrow();
 
-        if (round.getStatus() == RoundStatus.FINISHED ||
-                round.getStatus() == RoundStatus.CANCELLED) {
+        if (round.getStatus() != RoundStatus.IN_PROGRESS) {
             return;
         }
 
@@ -127,5 +126,53 @@ public class GameService {
                         (m1 == Move.PAPER    && m2 == Move.ROCK);
 
         return challengerWins ? round.getChallenger() : round.getChallenged();
+    }
+
+    @Transactional
+    public void respondToChallenge(UUID roundId, String username) {
+        var round = gameRoundRepository.findById(roundId)
+                .orElseThrow(() -> new IllegalArgumentException("Partida não encontrada."));
+
+        var user = userRepository.findByUsername(username).orElseThrow();
+
+        if (!round.getChallenged().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Apenas o usuário desafiado pode responder.");
+        }
+
+        if (round.getStatus() != RoundStatus.WAITING) {
+            throw new IllegalStateException("Essa partida não está aguardando resposta.");
+        }
+    }
+
+    @Transactional
+    public void acceptChallenge(UUID roundId, String username) {
+        var round = gameRoundRepository.findById(roundId).orElseThrow();
+        respondToChallenge(roundId, username);
+
+        round.setStatus(RoundStatus.IN_PROGRESS);
+        gameRoundRepository.save(round);
+
+        // notifica o desafiante que o desafio foi aceito
+        messagingTemplate.convertAndSendToUser(
+                round.getChallenger().getUsername(),
+                "/queue/challenges",
+                new ChallengeAnswerNotification(round.getId(), round.getChallenged().getUsername(), true)
+        );
+    }
+
+    @Transactional
+    public void declineChallenge(UUID roundId, String username) {
+        var round = gameRoundRepository.findById(roundId).orElseThrow();
+        respondToChallenge(roundId, username);
+
+        round.setStatus(RoundStatus.CANCELLED);
+        gameRoundRepository.save(round);
+
+        // notifica o desafiante que o desafio foi recusado
+        messagingTemplate.convertAndSendToUser(
+                round.getChallenger().getUsername(),
+                "/queue/challenges",
+                new ChallengeAnswerNotification(round.getId(), round.getChallenged().getUsername(), false)
+        );
     }
 }
