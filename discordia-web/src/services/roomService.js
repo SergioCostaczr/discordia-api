@@ -8,3 +8,12 @@ export async function getRooms() {
 export async function joinRoom(roomId) {
   await api.post(`/api/rooms/${roomId}/join`)
 }
+
+export async function createRoom(name, description) {
+  const response = await api.post('/api/rooms', {
+    name,
+    description,
+  })
+
+  return response.data
+}

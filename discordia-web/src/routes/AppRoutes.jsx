@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
 import RoomsPage from '../pages/RoomsPage'
+import ChatRoomPage from '../pages/ChatRoomPage'
 
 function AppRoutes() {
   return (
@@ -10,6 +11,7 @@ function AppRoutes() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/rooms" element={<RoomsPage />} />
+        <Route path="/rooms/:roomId" element={<ChatRoomPage />} />
       </Routes>
     </BrowserRouter>
   )
