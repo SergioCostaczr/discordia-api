@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getRoomMessages } from '../services/roomService'
+import {
+  connectWebSocket,
+  disconnectWebSocket,
+  subscribeToRoom,
+  sendMessage,
+} from '../services/websocketService'
 
 function ChatRoomPage() {
   const { roomId } = useParams()
@@ -8,6 +14,7 @@ function ChatRoomPage() {
 
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
+  const [newMessage, setNewMessage] = useState('')
 
   useEffect(() => {
     async function loadMessages() {
@@ -24,7 +31,35 @@ function ChatRoomPage() {
     }
 
     loadMessages()
+
+    const client = connectWebSocket()
+
+    client.onConnect = () => {
+      console.log('Conectado ao WebSocket')
+
+      subscribeToRoom(roomId, (message) => {
+        setMessages((previousMessages) => [
+          ...previousMessages,
+          message,
+        ])
+      })
+    }
+
+    return () => {
+      disconnectWebSocket()
+    }
   }, [roomId])
+
+  function handleSendMessage(event) {
+    event.preventDefault()
+
+    if (!newMessage.trim()) {
+      return
+    }
+
+    sendMessage(roomId, newMessage)
+    setNewMessage('')
+  }
 
   return (
     <div>
@@ -51,6 +86,17 @@ function ChatRoomPage() {
           <p>{message.content}</p>
         </div>
       ))}
+
+      <form onSubmit={handleSendMessage}>
+        <input
+          type="text"
+          placeholder="Digite sua mensagem..."
+          value={newMessage}
+          onChange={(event) => setNewMessage(event.target.value)}
+        />
+
+        <button type="submit">Enviar</button>
+      </form>
     </div>
   )
 }
