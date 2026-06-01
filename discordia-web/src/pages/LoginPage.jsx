@@ -15,7 +15,10 @@ function LoginPage() {
     try {
       setLoading(true)
 
-      await login(username, password)
+      const data = await login(username, password)
+
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('username', username)
 
       navigate('/rooms')
     } catch (error) {
@@ -30,10 +33,7 @@ function LoginPage() {
     <div style={styles.container}>
       <div style={styles.card}>
         <h1 style={styles.title}>Discordia</h1>
-
-        <p style={styles.subtitle}>
-          Entre na sua conta
-        </p>
+        <p style={styles.subtitle}>Entre na sua conta</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
@@ -52,11 +52,7 @@ function LoginPage() {
             style={styles.input}
           />
 
-          <button
-            type="submit"
-            style={styles.button}
-            disabled={loading}
-          >
+          <button type="submit" style={styles.button} disabled={loading}>
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
@@ -80,66 +76,50 @@ const styles = {
     alignItems: 'center',
     backgroundColor: 'var(--background-tertiary)',
   },
-
   card: {
     width: '100%',
     maxWidth: '420px',
-
     backgroundColor: 'var(--background-secondary)',
-
     padding: '40px',
     borderRadius: '16px',
-
     boxShadow: 'var(--shadow-default)',
   },
-
   title: {
     fontSize: '32px',
     marginBottom: '8px',
     textAlign: 'center',
   },
-
   subtitle: {
     color: 'var(--text-secondary)',
     marginBottom: '32px',
     textAlign: 'center',
   },
-
   form: {
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
   },
-
   input: {
     backgroundColor: 'var(--background-primary)',
     border: '1px solid var(--border-color)',
-
     padding: '14px',
     borderRadius: '10px',
-
     color: 'var(--text-primary)',
     fontSize: '15px',
   },
-
   button: {
     backgroundColor: 'var(--brand-color)',
     color: 'white',
-
     padding: '14px',
-
     borderRadius: '10px',
-
     fontWeight: 'bold',
     fontSize: '15px',
   },
-
   footerText: {
     marginTop: '24px',
     textAlign: 'center',
     color: 'var(--text-secondary)',
   },
-
   link: {
     color: 'var(--brand-color)',
     fontWeight: 'bold',

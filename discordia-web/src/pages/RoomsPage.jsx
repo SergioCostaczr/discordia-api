@@ -12,7 +12,7 @@ function RoomsPage() {
 
   const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(true)
-
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const [newRoomName, setNewRoomName] = useState('')
   const [newRoomDescription, setNewRoomDescription] = useState('')
 
@@ -65,6 +65,7 @@ function RoomsPage() {
 
       setNewRoomName('')
       setNewRoomDescription('')
+      setShowCreateModal(false)
 
       loadRooms()
     } catch (error) {
@@ -73,184 +74,215 @@ function RoomsPage() {
     }
   }
 
+  function handleLogout() {
+    localStorage.clear()
+    navigate('/')
+  }
+
   return (
-    <div style={styles.app}>
-      <aside style={styles.serverBar}>
-        <div style={styles.serverLogo}>D</div>
+    <>
+      <div style={styles.app}>
+        <aside style={styles.serverBar}>
+          <div style={styles.serverLogo}>D</div>
+          <div style={styles.serverDivider} />
+          <div style={styles.serverButton}>#</div>
+        </aside>
 
-        <div style={styles.serverDivider} />
+        <aside style={styles.sidebar}>
+          <div style={styles.sidebarHeader}>
+            <h1 style={styles.logo}>Discordia</h1>
 
-        <div style={styles.serverButton}>#</div>
-      </aside>
-
-      <aside style={styles.sidebar}>
-        <div style={styles.sidebarHeader}>
-          <h1 style={styles.logo}>Discordia</h1>
-          <div style={styles.onlineDot} />
-        </div>
-
-        <div style={styles.profileCard}>
-          <div style={styles.profileAvatar}>
-            {username.charAt(0).toUpperCase()}
+            <button style={styles.topLogoutButton} onClick={handleLogout}>
+              Sair
+            </button>
           </div>
 
-          <div>
-            <strong>{username}</strong>
-            <p style={styles.onlineText}>online</p>
-          </div>
-        </div>
-
-        <form style={styles.createCard} onSubmit={handleCreateRoom}>
-          <div style={styles.createGlow} />
-
-          <h2 style={styles.createTitle}>Criar nova sala</h2>
-
-          <p style={styles.createText}>
-            Abra um espaço para conversar, testar o chat ou jogar com seus amigos.
-          </p>
-
-          <input
-            type="text"
-            placeholder="Nome da sala"
-            value={newRoomName}
-            onChange={(event) => setNewRoomName(event.target.value)}
-            style={styles.input}
-          />
-
-          <input
-            type="text"
-            placeholder="Descrição"
-            value={newRoomDescription}
-            onChange={(event) => setNewRoomDescription(event.target.value)}
-            style={styles.input}
-          />
-
-          <button type="submit" style={styles.createButton}>
-            Criar sala
-          </button>
-        </form>
-      </aside>
-
-      <main style={styles.main}>
-        <header style={styles.header}>
-          <div>
-            <h2 style={styles.pageTitle}>Escolha uma sala</h2>
-            <p style={styles.pageSubtitle}>
-              Entre em um canal disponível e comece a conversar em tempo real.
-            </p>
-          </div>
-
-          <button style={styles.refreshButton} onClick={loadRooms}>
-            Atualizar
-          </button>
-        </header>
-
-        <section style={styles.hero}>
-          <div>
-            <p style={styles.heroEyebrow}>DISCORDIA WEB</p>
-            <h1 style={styles.heroTitle}>
-              Conversas rápidas, salas simples e tempo real de verdade.
-            </h1>
-            <p style={styles.heroText}>
-              Escolha uma sala para entrar no chat ou crie um novo espaço para testar a aplicação.
-            </p>
-          </div>
-
-          <div style={styles.heroBadge}>
-            <span style={styles.heroBadgeNumber}>{rooms.length}</span>
-            <span style={styles.heroBadgeLabel}>
-              {rooms.length === 1 ? 'sala ativa' : 'salas ativas'}
-            </span>
-          </div>
-        </section>
-
-        <section style={styles.roomsSection}>
-          <div style={styles.sectionHeader}>
-            <h3 style={styles.sectionTitle}>Salas disponíveis</h3>
-            <span style={styles.sectionCount}>{rooms.length}</span>
-          </div>
-
-          {loading && (
-            <div style={styles.centerState}>
-              <p>Carregando salas...</p>
+          <div style={styles.profileCard}>
+            <div style={styles.profileAvatar}>
+              {username.charAt(0).toUpperCase()}
             </div>
-          )}
 
-          {!loading && rooms.length === 0 && (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>#</div>
+            <div>
+              <strong>{username}</strong>
+              <p style={styles.onlineText}>online</p>
+            </div>
+          </div>
 
-              <h2>Nenhuma sala disponível</h2>
+          <div style={styles.sidebarButtons}>
+            <button
+              style={styles.primarySidebarButton}
+              onClick={() => setShowCreateModal(true)}
+            >
+              + Nova sala
+            </button>
+          </div>
 
-              <p>
-                Crie a primeira sala na barra lateral para começar a testar o Discordia.
+        </aside>
+
+        <main style={styles.main}>
+          <header style={styles.header}>
+            <div>
+              <h2 style={styles.pageTitle}>Escolha uma sala</h2>
+
+              <p style={styles.pageSubtitle}>
+                Entre em um canal disponível e converse em tempo real.
               </p>
             </div>
-          )}
 
-          {!loading && rooms.length > 0 && (
-            <div style={styles.roomsGrid}>
-              {rooms.map((room, index) => (
-                <article
-  key={room.id}
-  style={styles.roomCard}
-  onMouseEnter={(event) => {
-    event.currentTarget.style.transform =
-      'translateY(-6px)'
+            <button style={styles.refreshButton} onClick={loadRooms}>
+              Atualizar
+            </button>
+          </header>
 
-    event.currentTarget.style.boxShadow =
-      '0 24px 50px rgba(0,0,0,0.32)'
+          <section style={styles.hero}>
+            <div>
+              <p style={styles.heroEyebrow}>DISCORDIA WEB</p>
 
-    event.currentTarget.style.border =
-      '1px solid rgba(88,101,242,0.35)'
-  }}
-  onMouseLeave={(event) => {
-    event.currentTarget.style.transform =
-      'translateY(0)'
+              <h1 style={styles.heroTitle}>
+                Uma experiência de chat moderna construída do zero.
+              </h1>
 
-    event.currentTarget.style.boxShadow =
-      '0 14px 35px rgba(0,0,0,0.18)'
+              <p style={styles.heroText}>
+                Crie salas, converse em tempo real e prepare-se para jogar com
+                outros usuários.
+              </p>
+            </div>
 
-    event.currentTarget.style.border =
-      '1px solid rgba(255,255,255,0.07)'
-  }}
->
-                  <div style={styles.cardGlow} />
+            <div style={styles.heroBadge}>
+              <span style={styles.heroBadgeNumber}>{rooms.length}</span>
 
-                  <div style={styles.roomTop}>
-                    <div style={styles.roomIcon}>#</div>
+              <span style={styles.heroBadgeLabel}>
+                {rooms.length === 1 ? 'sala ativa' : 'salas ativas'}
+              </span>
+            </div>
+          </section>
 
-                    <span style={styles.roomTag}>
-                      canal {String(index + 1).padStart(2, '0')}
-                    </span>
-                  </div>
+          <section style={styles.roomsSection}>
+            <div style={styles.sectionHeader}>
+              <h3 style={styles.sectionTitle}>Salas disponíveis</h3>
+              <span style={styles.sectionCount}>{rooms.length}</span>
+            </div>
 
-                  <h3 style={styles.roomName}>{room.name}</h3>
+            {loading && (
+              <div style={styles.centerState}>
+                <p>Carregando salas...</p>
+              </div>
+            )}
 
-                  <p style={styles.roomDescription}>
-                    {room.description || 'Sala sem descrição.'}
-                  </p>
+            {!loading && rooms.length === 0 && (
+              <div style={styles.emptyState}>
+                <div style={styles.emptyIcon}>#</div>
+                <h2>Nenhuma sala disponível</h2>
+                <p>Crie a primeira sala para começar a testar o Discordia.</p>
+              </div>
+            )}
 
-                  <div style={styles.roomFooter}>
-                    <div style={styles.roomMeta}>
-                      <span style={styles.liveDot} />
-                      <span>tempo real</span>
+            {!loading && rooms.length > 0 && (
+              <div style={styles.roomsGrid}>
+                {rooms.map((room, index) => (
+                  <article
+                    key={room.id}
+                    style={styles.roomCard}
+                    onMouseEnter={(event) => {
+                      event.currentTarget.style.transform = 'translateY(-6px)'
+                      event.currentTarget.style.boxShadow =
+                        '0 24px 50px rgba(0,0,0,0.32)'
+                      event.currentTarget.style.border =
+                        '1px solid rgba(88,101,242,0.35)'
+                    }}
+                    onMouseLeave={(event) => {
+                      event.currentTarget.style.transform = 'translateY(0)'
+                      event.currentTarget.style.boxShadow =
+                        '0 14px 35px rgba(0,0,0,0.18)'
+                      event.currentTarget.style.border =
+                        '1px solid rgba(255,255,255,0.07)'
+                    }}
+                  >
+                    <div style={styles.cardGlow} />
+
+                    <div style={styles.roomTop}>
+                      <div style={styles.roomIcon}>#</div>
+
+                      <span style={styles.roomTag}>
+                        canal {String(index + 1).padStart(2, '0')}
+                      </span>
                     </div>
 
-                    <button
-                      style={styles.joinButton}
-                      onClick={() => handleJoinRoom(room)}
-                    >
-                      Entrar
-                    </button>
-                  </div>
-                </article>
-              ))}
+                    <h3 style={styles.roomName}>{room.name}</h3>
+
+                    <p style={styles.roomDescription}>
+                      {room.description || 'Sala sem descrição.'}
+                    </p>
+
+                    <div style={styles.roomFooter}>
+                      <div style={styles.roomMeta}>
+                        <span style={styles.liveDot} />
+                        <span>tempo real</span>
+                      </div>
+
+                      <button
+                        style={styles.joinButton}
+                        onClick={() => handleJoinRoom(room)}
+                      >
+                        Entrar
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
+      </div>
+
+      {showCreateModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modal}>
+            <div style={styles.modalGlow} />
+
+            <div style={styles.modalHeader}>
+              <div>
+                <h2 style={styles.modalTitle}>Criar nova sala</h2>
+
+                <p style={styles.modalSubtitle}>
+                  Configure um novo espaço para conversar.
+                </p>
+              </div>
+
+              <button
+                style={styles.closeButton}
+                onClick={() => setShowCreateModal(false)}
+              >
+                ×
+              </button>
             </div>
-          )}
-        </section>
-      </main>
-    </div>
+
+            <form style={styles.modalForm} onSubmit={handleCreateRoom}>
+              <input
+                type="text"
+                placeholder="Nome da sala"
+                value={newRoomName}
+                onChange={(event) => setNewRoomName(event.target.value)}
+                style={styles.modalInput}
+              />
+
+              <textarea
+                placeholder="Descrição da sala"
+                value={newRoomDescription}
+                onChange={(event) =>
+                  setNewRoomDescription(event.target.value)
+                }
+                style={styles.textarea}
+              />
+
+              <button type="submit" style={styles.modalButton}>
+                Criar sala
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -311,7 +343,7 @@ const styles = {
     borderRight: '1px solid #3f4147',
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden',
+    paddingBottom: '20px',
   },
 
   sidebarHeader: {
@@ -324,24 +356,26 @@ const styles = {
   },
 
   logo: {
-    fontSize: '32px',
+    fontSize: '30px',
     fontWeight: '900',
     letterSpacing: '-1px',
   },
 
-  onlineDot: {
-    width: '12px',
-    height: '12px',
-    borderRadius: '50%',
-    backgroundColor: '#23a559',
-    boxShadow: '0 0 12px rgba(35,165,89,0.9)',
+  topLogoutButton: {
+    height: '38px',
+    padding: '0 14px',
+    borderRadius: '12px',
+    backgroundColor: '#232428',
+    color: '#f2f3f5',
+    fontWeight: '800',
   },
 
   profileCard: {
     margin: '18px',
     padding: '16px',
     borderRadius: '18px',
-    background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
+    background:
+      'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
     display: 'flex',
     alignItems: 'center',
     gap: '14px',
@@ -363,67 +397,20 @@ const styles = {
     fontSize: '13px',
   },
 
-  createCard: {
-    position: 'relative',
-    overflow: 'hidden',
-    margin: '0 18px 18px',
-    padding: '22px',
-    borderRadius: '24px',
-    background: 'linear-gradient(135deg, rgba(88,101,242,0.18), rgba(35,165,89,0.08))',
-    border: '1px solid rgba(255,255,255,0.08)',
+  sidebarButtons: {
+    padding: '0 18px',
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
   },
 
-  createGlow: {
-    position: 'absolute',
-    top: '-45px',
-    right: '-45px',
-    width: '130px',
-    height: '130px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(123,92,255,0.4), transparent)',
-    filter: 'blur(12px)',
-  },
-
-  createTitle: {
-    position: 'relative',
-    zIndex: 1,
-    fontSize: '24px',
-    lineHeight: 1.1,
-  },
-
-  createText: {
-    position: 'relative',
-    zIndex: 1,
-    color: '#d7d9dc',
-    lineHeight: 1.5,
-    fontSize: '14px',
-    marginBottom: '4px',
-  },
-
-  input: {
-    position: 'relative',
-    zIndex: 1,
-    height: '46px',
-    borderRadius: '14px',
-    border: '1px solid #3f4147',
-    backgroundColor: '#232428',
-    color: '#f2f3f5',
-    padding: '0 14px',
-    fontSize: '14px',
-  },
-
-  createButton: {
-    position: 'relative',
-    zIndex: 1,
-    height: '46px',
-    borderRadius: '14px',
+  primarySidebarButton: {
+    height: '50px',
+    borderRadius: '16px',
     background: 'linear-gradient(135deg, #5865f2, #7b5cff)',
     color: 'white',
-    fontWeight: '800',
-    boxShadow: '0 10px 25px rgba(88,101,242,0.35)',
+    fontWeight: '900',
+    fontSize: '15px',
   },
 
   main: {
@@ -561,28 +548,22 @@ const styles = {
     gap: '18px',
   },
 
-roomCard: {
-  position: 'relative',
-  overflow: 'hidden',
-  minHeight: '230px',
-  borderRadius: '24px',
-  padding: '22px',
-
-  background:
-    'linear-gradient(180deg, rgba(43,45,49,1), rgba(35,36,40,1))',
-
-  border: '1px solid rgba(255,255,255,0.07)',
-
-  boxShadow:
-    '0 14px 35px rgba(0,0,0,0.18)',
-
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-
-  transition:
-    'transform 0.22s ease, box-shadow 0.22s ease, border 0.22s ease',
-},
+  roomCard: {
+    position: 'relative',
+    overflow: 'hidden',
+    minHeight: '230px',
+    borderRadius: '24px',
+    padding: '22px',
+    background:
+      'linear-gradient(180deg, rgba(43,45,49,1), rgba(35,36,40,1))',
+    border: '1px solid rgba(255,255,255,0.07)',
+    boxShadow: '0 14px 35px rgba(0,0,0,0.18)',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    transition:
+      'transform 0.22s ease, box-shadow 0.22s ease, border 0.22s ease',
+  },
 
   cardGlow: {
     position: 'absolute',
@@ -591,7 +572,8 @@ roomCard: {
     width: '140px',
     height: '140px',
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(88,101,242,0.25), transparent)',
+    background:
+      'radial-gradient(circle, rgba(88,101,242,0.25), transparent)',
     filter: 'blur(12px)',
   },
 
@@ -708,6 +690,109 @@ roomCard: {
     alignItems: 'center',
     fontSize: '40px',
     marginBottom: '20px',
+  },
+
+  modalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    backdropFilter: 'blur(6px)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+
+  modal: {
+    position: 'relative',
+    overflow: 'hidden',
+    width: '100%',
+    maxWidth: '560px',
+    borderRadius: '28px',
+    padding: '30px',
+    background: 'linear-gradient(180deg, #2b2d31, #232428)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    boxShadow: '0 30px 80px rgba(0,0,0,0.45)',
+  },
+
+  modalGlow: {
+    position: 'absolute',
+    top: '-60px',
+    right: '-60px',
+    width: '180px',
+    height: '180px',
+    borderRadius: '50%',
+    background:
+      'radial-gradient(circle, rgba(123,92,255,0.45), transparent)',
+    filter: 'blur(18px)',
+  },
+
+  modalHeader: {
+    position: 'relative',
+    zIndex: 1,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '24px',
+  },
+
+  modalTitle: {
+    fontSize: '34px',
+    lineHeight: 1,
+  },
+
+  modalSubtitle: {
+    marginTop: '8px',
+    color: '#b5bac1',
+  },
+
+  closeButton: {
+    width: '42px',
+    height: '42px',
+    borderRadius: '12px',
+    backgroundColor: '#232428',
+    color: '#f2f3f5',
+    fontSize: '24px',
+  },
+
+  modalForm: {
+    position: 'relative',
+    zIndex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+
+  modalInput: {
+    height: '54px',
+    borderRadius: '16px',
+    border: '1px solid #3f4147',
+    backgroundColor: '#1e1f22',
+    color: '#f2f3f5',
+    padding: '0 18px',
+    fontSize: '15px',
+  },
+
+  textarea: {
+    minHeight: '120px',
+    resize: 'none',
+    borderRadius: '18px',
+    border: '1px solid #3f4147',
+    backgroundColor: '#1e1f22',
+    color: '#f2f3f5',
+    padding: '16px',
+    fontSize: '15px',
+    fontFamily: 'inherit',
+  },
+
+  modalButton: {
+    height: '56px',
+    borderRadius: '18px',
+    background: 'linear-gradient(135deg, #5865f2, #7b5cff)',
+    color: 'white',
+    fontWeight: '900',
+    fontSize: '15px',
+    boxShadow: '0 14px 28px rgba(88,101,242,0.35)',
   },
 }
 
