@@ -27,14 +27,21 @@ function RoomsPage() {
   }, [])
 
   async function handleJoinRoom(roomId) {
-    try {
-      await joinRoom(roomId)
-      navigate(`/rooms/${roomId}`)
-    } catch (error) {
-      alert('Erro ao entrar na sala. Faça login antes de entrar.')
-      navigate('/')
+  try {
+    await joinRoom(roomId)
+  } catch (error) {
+    const message = error.response?.data?.message || ''
+
+    if (!message.toLowerCase().includes('já está na sala')) {
+      console.error(error)
+      alert(message || 'Erro ao entrar na sala.')
+      return
     }
   }
+
+  navigate(`/rooms/${roomId}`)
+}
+
   async function handleCreateRoom() {
   try {
     await createRoom(newRoomName, newRoomDescription)
@@ -47,7 +54,7 @@ function RoomsPage() {
   } catch (error) {
     console.error(error)
     alert('Erro ao criar sala')
-  }
+  } 
 }
 
   if (loading) {

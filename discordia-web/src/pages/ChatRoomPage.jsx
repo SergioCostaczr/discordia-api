@@ -1,8 +1,30 @@
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { getRoomMessages } from '../services/roomService'
 
 function ChatRoomPage() {
   const { roomId } = useParams()
   const navigate = useNavigate()
+
+  const [messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadMessages() {
+      try {
+        const data = await getRoomMessages(roomId)
+
+        const orderedMessages = [...data.content].reverse()
+        setMessages(orderedMessages)
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadMessages()
+  }, [roomId])
 
   return (
     <div>
@@ -16,7 +38,19 @@ function ChatRoomPage() {
       <hr />
 
       <h2>Mensagens</h2>
-      <p>O chat em tempo real será carregado aqui.</p>
+
+      {loading && <p>Carregando mensagens...</p>}
+
+      {!loading && messages.length === 0 && (
+        <p>Nenhuma mensagem ainda.</p>
+      )}
+
+      {messages.map((message) => (
+        <div key={message.id}>
+          <strong>{message.senderUsername}</strong>
+          <p>{message.content}</p>
+        </div>
+      ))}
     </div>
   )
 }

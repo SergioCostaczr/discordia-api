@@ -17,3 +17,8 @@ export async function createRoom(name, description) {
 
   return response.data
 }
+
+export async function getRoomMessages(roomId) {
+  const response = await api.get(`/api/rooms/${roomId}/messages?page=0&size=20`)
+  return response.data
+}
