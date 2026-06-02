@@ -5,9 +5,11 @@ import com.github.sergiocostaczr.discordia.dto.response.RoomResponse;
 import com.github.sergiocostaczr.discordia.model.entity.Room;
 import com.github.sergiocostaczr.discordia.model.entity.RoomMember;
 import com.github.sergiocostaczr.discordia.model.entity.User;
+import com.github.sergiocostaczr.discordia.repository.MessageRepository;
 import com.github.sergiocostaczr.discordia.repository.RoomMemberRepository;
 import com.github.sergiocostaczr.discordia.repository.RoomRepository;
 import com.github.sergiocostaczr.discordia.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -22,12 +24,15 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final RoomMemberRepository roomMemberRepository;
     private final UserRepository userRepository;
+    private final MessageRepository messageRepository;
 
     public RoomResponse create(RoomRequest request, String username) {
         roomRepository.findByName(request.name()).ifPresent(room -> {
             throw new IllegalStateException("Room with name " + request.name() + " already exists");
         });
-        var admin = userRepository.findByUsername(username).orElseThrow(()-> new UsernameNotFoundException("Usuário não encontrado"));
+
+        var admin = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
 
         var room = Room.builder()
                 .name(request.name())
@@ -41,7 +46,7 @@ public class RoomService {
     public List<RoomResponse> findAll() {
         return roomRepository.findAll()
                 .stream()
-                .map(room -> RoomResponse.from(room))
+                .map(RoomResponse::from)
                 .toList();
     }
 
@@ -63,6 +68,16 @@ public class RoomService {
         roomMemberRepository.save(member);
     }
 
+    @Transactional
+    public void delete(UUID roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("Sala não encontrada."));
+
+        messageRepository.deleteByRoomId(roomId);
+        roomMemberRepository.deleteByRoomId(roomId);
+        roomRepository.delete(room);
+    }
+
     public void assertBothInRoom(UUID roomId, UUID userAId, UUID userBId) {
         if (!roomMemberRepository.existsByRoomIdAndUserId(roomId, userAId) ||
                 !roomMemberRepository.existsByRoomIdAndUserId(roomId, userBId)) {
@@ -70,4 +85,3 @@ public class RoomService {
         }
     }
 }
-

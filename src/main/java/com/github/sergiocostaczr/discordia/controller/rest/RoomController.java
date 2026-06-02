@@ -1,6 +1,5 @@
 package com.github.sergiocostaczr.discordia.controller.rest;
 
-import com.github.sergiocostaczr.discordia.dto.request.RegisterRequest;
 import com.github.sergiocostaczr.discordia.dto.request.RoomRequest;
 import com.github.sergiocostaczr.discordia.dto.response.ChatMessageResponse;
 import com.github.sergiocostaczr.discordia.dto.response.RoomResponse;
@@ -26,7 +25,6 @@ public class RoomController {
     private final RoomService roomService;
     private final ChatService chatService;
 
-
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RoomResponse> create(
@@ -47,6 +45,13 @@ public class RoomController {
             @AuthenticationPrincipal UserDetails userDetails) {
         roomService.join(roomId, userDetails.getUsername());
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{roomId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable UUID roomId) {
+        roomService.delete(roomId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{roomId}/messages")
