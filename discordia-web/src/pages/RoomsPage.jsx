@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
 import {
   getRooms,
   joinRoom,
   createRoom,
+  deleteRoom,
 } from '../services/roomService'
 
 function RoomsPage() {
@@ -16,6 +16,7 @@ function RoomsPage() {
   const [newRoomName, setNewRoomName] = useState('')
   const [newRoomDescription, setNewRoomDescription] = useState('')
   const [creatingRoom, setCreatingRoom] = useState(false)
+  const [deletingRoomId, setDeletingRoomId] = useState(null)
 
   const username = localStorage.getItem('username') || 'Você'
 
@@ -80,6 +81,35 @@ function RoomsPage() {
       setCreatingRoom(false)
     }
   }
+
+  async function handleDeleteRoom(event, room) {
+  event.stopPropagation()
+
+  const confirmed = window.confirm(
+    `Tem certeza que deseja excluir a sala "${room.name}"? Essa ação não pode ser desfeita.`
+  )
+
+  if (!confirmed) return
+
+  try {
+    setDeletingRoomId(room.id)
+
+    await deleteRoom(room.id)
+
+    await loadRooms()
+  } catch (error) {
+    console.error(error)
+
+    if (error.response?.status === 403) {
+      alert('Você não tem permissão para excluir salas.')
+      return
+    }
+
+    alert('Erro ao excluir sala.')
+  } finally {
+    setDeletingRoomId(null)
+  }
+}
 
   function handleLogout() {
     localStorage.clear()
@@ -160,6 +190,11 @@ function RoomsPage() {
             .rooms-card:hover .room-card-glow {
               opacity: 1;
               transform: scale(1.18);
+            }
+              .rooms-delete-button:hover {
+            transform: translateY(-2px);
+            background: rgba(127, 29, 29, 0.28) !important;
+            border-color: rgba(248, 113, 113, 0.42) !important;
             }
 
             .rooms-action-button:hover,
@@ -380,47 +415,63 @@ function RoomsPage() {
             {!loading && rooms.length > 0 && (
               <div style={styles.roomsGrid}>
                 {rooms.map((room, index) => (
-                  <article
-                    className="rooms-card"
-                    key={room.id}
-                    style={styles.roomCard}
-                  >
-                    <div
-                      className="room-card-glow"
-                      style={styles.cardGlow}
-                    />
+<article
+  className="rooms-card"
+  key={room.id}
+  style={styles.roomCard}
+>
+  <div
+    className="room-card-glow"
+    style={styles.cardGlow}
+  />
 
-                    <div style={styles.roomTop}>
-                      <div style={styles.roomIcon}>#</div>
+  <div style={styles.roomTop}>
+    <div style={styles.roomIcon}>#</div>
 
-                      <span style={styles.roomTag}>
-                        canal {String(index + 1).padStart(2, '0')}
-                      </span>
-                    </div>
+    <span style={styles.roomTag}>
+      canal {String(index + 1).padStart(2, '0')}
+    </span>
+  </div>
 
-                    <div style={styles.roomBody}>
-                      <h3 style={styles.roomName}>{room.name}</h3>
+  <div style={styles.roomBody}>
+    <h3 style={styles.roomName}>{room.name}</h3>
 
-                      <p style={styles.roomDescription}>
-                        {room.description || 'Sala sem descrição.'}
-                      </p>
-                    </div>
+    <p style={styles.roomDescription}>
+      {room.description || 'Sala sem descrição.'}
+    </p>
+  </div>
 
-                    <div style={styles.roomFooter}>
-                      <div style={styles.roomMeta}>
-                        <span style={styles.liveDot} />
-                        <span>tempo real</span>
-                      </div>
+  <div style={styles.roomFooter}>
+    <div style={styles.roomMeta}>
+      <span style={styles.liveDot} />
+      <span>tempo real</span>
+    </div>
 
-                      <button
-                        className="rooms-join-button"
-                        style={styles.joinButton}
-                        onClick={() => handleJoinRoom(room)}
-                      >
-                        Entrar
-                      </button>
-                    </div>
-                  </article>
+    <div style={styles.roomActions}>
+      <button
+        className="rooms-delete-button"
+        style={{
+          ...styles.deleteButton,
+          opacity: deletingRoomId === room.id ? 0.65 : 1,
+          cursor: deletingRoomId === room.id ? 'not-allowed' : 'pointer',
+        }}
+        onClick={(event) => handleDeleteRoom(event, room)}
+        disabled={deletingRoomId === room.id}
+        title="Excluir sala"
+      >
+        {deletingRoomId === room.id ? '...' : 'Excluir'}
+      </button>
+
+      <button
+        className="rooms-join-button"
+        style={styles.joinButton}
+        onClick={() => handleJoinRoom(room)}
+      >
+        Entrar
+      </button>
+    </div>
+  </div>
+</article>
                 ))}
               </div>
             )}
@@ -1152,6 +1203,24 @@ const styles = {
     transition: '0.22s ease',
     boxShadow: '0 12px 26px rgba(34, 197, 94, 0.24)',
   },
+
+  roomActions: {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+},
+
+deleteButton: {
+  height: '44px',
+  padding: '0 15px',
+  border: '1px solid rgba(248, 113, 113, 0.24)',
+  borderRadius: '15px',
+  background: 'rgba(127, 29, 29, 0.18)',
+  color: '#fecaca',
+  fontWeight: '900',
+  cursor: 'pointer',
+  transition: '0.22s ease',
+},
 
   centerState: {
     minHeight: '300px',
