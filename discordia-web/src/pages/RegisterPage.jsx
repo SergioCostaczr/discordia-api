@@ -17,8 +17,8 @@ function RegisterPage() {
       return
     }
 
-    if (password.length < 4) {
-      alert('A senha precisa ter pelo menos 4 caracteres')
+    if (password.length < 6) {
+      alert('A senha precisa ter pelo menos 6 caracteres')
       return
     }
 
