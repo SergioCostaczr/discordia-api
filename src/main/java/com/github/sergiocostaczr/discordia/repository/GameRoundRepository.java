@@ -31,4 +31,6 @@ public interface GameRoundRepository extends JpaRepository<GameRound, UUID> {
             @Param("userBId") UUID userBId,
             @Param("statuses") List<RoundStatus> statuses
     );
+
+    void deleteByRoomId(UUID roomId);
 }

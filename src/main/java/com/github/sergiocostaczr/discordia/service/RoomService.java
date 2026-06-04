@@ -7,6 +7,7 @@ import com.github.sergiocostaczr.discordia.model.entity.Room;
 import com.github.sergiocostaczr.discordia.model.entity.RoomMember;
 import com.github.sergiocostaczr.discordia.model.entity.User;
 import com.github.sergiocostaczr.discordia.repository.MessageRepository;
+import com.github.sergiocostaczr.discordia.repository.GameRoundRepository;
 import com.github.sergiocostaczr.discordia.repository.RoomMemberRepository;
 import com.github.sergiocostaczr.discordia.repository.RoomRepository;
 import com.github.sergiocostaczr.discordia.repository.UserRepository;
@@ -27,6 +28,7 @@ public class RoomService {
     private final RoomMemberRepository roomMemberRepository;
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final GameRoundRepository gameRoundRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     public RoomResponse create(RoomRequest request, String username) {
@@ -94,6 +96,7 @@ public class RoomService {
                 .orElseThrow(() -> new IllegalArgumentException("Sala não encontrada."));
 
         messageRepository.deleteByRoomId(roomId);
+        gameRoundRepository.deleteByRoomId(roomId);
         roomMemberRepository.deleteByRoomId(roomId);
         roomRepository.delete(room);
     }
