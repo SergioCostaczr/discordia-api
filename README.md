@@ -1,113 +1,37 @@
-﻿# Discordia
+# Discordia
 
-Discordia é um chat em tempo real inspirado visualmente no Discord, com salas, autenticação JWT, mensagens via WebSocket/STOMP e um jogo de Pedra, Papel e Tesoura em tempo real entre membros de uma sala.
+Discordia e uma aplicacao de chat em tempo real criada para reunir usuarios em salas de discussao especificas. A ideia do projeto e brincar com o nome: em vez de ser apenas um clone visual de comunidades online, o foco e criar um ambiente onde pessoas entram em salas tematicas para conversar, discordar, trocar mensagens ao vivo e interagir dentro da propria sala.
+
+O projeto tambem inclui um minigame de Pedra, Papel e Tesoura em tempo real, permitindo que usuarios desafiem outros membros presentes na mesma sala.
+
+## Funcionalidades
+
+- Cadastro e login com autenticacao JWT.
+- Sessoes isoladas por aba do navegador.
+- Salas de discussao criadas e gerenciadas por usuarios administradores.
+- Entrada e saida de salas com atualizacao da lista de membros em tempo real.
+- Historico de mensagens por sala.
+- Envio e recebimento de mensagens via WebSocket.
+- Indicador de digitacao.
+- Moderacao de mensagens:
+  - administradores podem excluir qualquer mensagem;
+  - usuarios comuns podem excluir apenas as proprias mensagens.
+- Exclusao de salas por administradores.
+- Minigame realtime de Pedra, Papel e Tesoura entre membros da sala.
 
 ## Stack
 
 - Backend: Spring Boot
 - Frontend: React + Vite
-- Banco: PostgreSQL via Docker
+- Banco de dados: PostgreSQL
 - Mensageria: RabbitMQ
-- Realtime: WebSocket + STOMP + SockJS
-- Autenticação: JWT
+- Tempo real: WebSocket + STOMP + SockJS
+- Autenticacao: JWT
 
-## Como Rodar
+## Estrutura
 
-### 1. Subir infraestrutura
-
-```bash
-docker compose up -d
+```txt
+discordia/
+  backend/    # API Spring Boot
+  frontend/   # Interface React
 ```
-
-Isso sobe:
-
-- PostgreSQL em `localhost:5432`
-- RabbitMQ em `localhost:5672`
-- Painel RabbitMQ em `http://localhost:15672`
-
-### 2. Configurar JWT
-
-No PowerShell:
-
-```powershell
-$env:JWT_SECRET="minha-chave-secreta-discordia-com-pelo-menos-32-caracteres"
-```
-
-### 3. Rodar backend
-
-Na raiz do projeto:
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Backend disponível em:
-
-```text
-http://localhost:8080
-```
-
-### 4. Rodar frontend
-
-```bash
-cd discordia-web
-npm install
-npm run dev
-```
-
-Frontend disponível em:
-
-```text
-http://localhost:5173
-```
-
-## Funcionalidades Implementadas
-
-- Cadastro e login com JWT.
-- Sessão isolada por aba do navegador usando `sessionStorage`.
-- Usuário comum nasce como `USER`.
-- Role `ADMIN` controla criação e exclusão de salas.
-- Listagem de salas.
-- Criação de salas por ADMIN.
-- Entrada em sala.
-- Histórico de mensagens.
-- Envio e recebimento de mensagens em tempo real.
-- Exclusão de mensagens:
-  - ADMIN pode excluir qualquer mensagem.
-  - USER pode excluir apenas mensagens próprias.
-- Exclusão de sala por ADMIN.
-- Lista real de membros da sala.
-- Indicador simples de “digitando...” via WebSocket.
-- Pedra, Papel e Tesoura realtime:
-  - desafiar membro da sala;
-  - receber convite em tempo real;
-  - aceitar ou recusar;
-  - escolher Pedra, Papel ou Tesoura;
-  - resultado calculado no backend;
-  - resultado enviado para os dois jogadores.
-
-## Fluxo Para Demonstração
-
-1. Subir Docker.
-2. Configurar `JWT_SECRET`.
-3. Rodar backend.
-4. Rodar frontend.
-5. Criar ou logar com usuário ADMIN.
-6. Criar uma sala.
-7. Logar com outro usuário em outra aba ou janela.
-8. Entrar na mesma sala.
-9. Enviar mensagens em tempo real.
-10. Testar indicador de digitação.
-11. Excluir mensagem própria como USER.
-12. Excluir qualquer mensagem ou sala como ADMIN.
-13. Desafiar outro membro para Pedra, Papel e Tesoura.
-14. Aceitar o desafio na outra sessão.
-15. Jogar e verificar o resultado em tempo real.
-
-## Próximos Passos
-
-- Ranking de vitórias, derrotas e empates.
-- Histórico de partidas por sala.
-- Presença online real.
-- Mais testes automatizados para regras de permissão.
-- Migração gradual dos estilos inline para CSS Modules.
