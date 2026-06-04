@@ -194,29 +194,16 @@ function RoomsPage() {
         <div style={styles.backgroundOrbOne} />
         <div style={styles.backgroundOrbTwo} />
         <div style={styles.backgroundOrbThree} />
-
-        <aside style={styles.serverBar}>
-          <button style={styles.serverLogo} title="Discordia">
-            D
-          </button>
-
-          <div style={styles.serverDivider} />
-
-          <button style={styles.serverButton} title="Salas">
-            #
-          </button>
-
-          <button style={styles.serverGhostButton} title="Jogos em breve">
-            ▶
-          </button>
-        </aside>
-
         <aside style={styles.sidebar}>
           <div style={styles.sidebarHeader}>
-            <div>
-              <h1 style={styles.logo}>Discordia</h1>
-              <p style={styles.logoSubtitle}>painel de salas</p>
-            </div>
+            <button
+              style={styles.logoButton}
+              onClick={() => navigate('/rooms')}
+              title="Voltar para salas"
+            >
+              <span style={styles.logoInitial}>D</span>
+              <span style={styles.logoText}>iscordia</span>
+            </button>
 
             <button
               className={classes.logoutButton}
@@ -279,13 +266,6 @@ function RoomsPage() {
                 </p>
               )}
             </div>
-          </div>
-
-          <div style={styles.sidebarFooter}>
-            <p style={styles.sidebarFooterTitle}>Próximo recurso</p>
-            <p style={styles.sidebarFooterText}>
-              Jogos realtime dentro das salas.
-            </p>
           </div>
         </aside>
 
@@ -533,7 +513,7 @@ const styles = {
   app: {
     position: 'relative',
     display: 'grid',
-    gridTemplateColumns: '76px 330px 1fr',
+    gridTemplateColumns: '330px 1fr',
     width: '100%',
     height: '100vh',
     overflow: 'hidden',
@@ -670,6 +650,27 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottom: '1px solid rgba(148, 163, 184, 0.12)',
+  },
+
+  logoButton: {
+    border: 'none',
+    background: 'transparent',
+    color: '#f1f1f3',
+    display: 'inline-flex',
+    alignItems: 'baseline',
+    padding: 0,
+    cursor: 'pointer',
+    fontSize: '29px',
+    fontWeight: '950',
+    letterSpacing: '-1px',
+  },
+
+  logoInitial: {
+    color: '#3b82f6',
+  },
+
+  logoText: {
+    color: '#f1f1f3',
   },
 
   logo: {
@@ -851,28 +852,6 @@ const styles = {
     margin: 0,
     color: '#8a9099',
     fontSize: '13px',
-    lineHeight: 1.5,
-  },
-
-  sidebarFooter: {
-    margin: 'auto 18px 0',
-    padding: '16px',
-    borderRadius: '8px',
-    background: '#18191c',
-    border: '1px solid rgba(148, 163, 184, 0.1)',
-  },
-
-  sidebarFooterTitle: {
-    margin: 0,
-    color: '#f1f1f3',
-    fontSize: '13px',
-    fontWeight: 900,
-  },
-
-  sidebarFooterText: {
-    margin: '6px 0 0',
-    color: '#8a9099',
-    fontSize: '12px',
     lineHeight: 1.5,
   },
 
