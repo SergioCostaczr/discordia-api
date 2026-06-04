@@ -48,7 +48,7 @@ button:active {
 
 input:focus {
   border-color: var(--brand-color);
-  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.18);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
 }
 
 ::-webkit-scrollbar {
@@ -56,17 +56,17 @@ input:focus {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e1f22;
+  background: var(--background-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3f4147;
+  background: var(--border-color);
   border-radius: 999px;
-  border: 2px solid #1e1f22;
+  border: 2px solid var(--background-primary);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #5865f2;
+  background: var(--brand-color);
 }
 
 ::selection {

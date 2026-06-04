@@ -40,27 +40,10 @@ function LoginPage() {
     <div style={styles.container}>
       <style>
         {`
-          @keyframes floatGlow {
-            0% {
-              transform: translateY(0px);
-              opacity: 0.75;
-            }
-
-            50% {
-              transform: translateY(-18px);
-              opacity: 1;
-            }
-
-            100% {
-              transform: translateY(0px);
-              opacity: 0.75;
-            }
-          }
-
           @keyframes fadeUp {
             from {
               opacity: 0;
-              transform: translateY(20px);
+              transform: translateY(10px);
             }
 
             to {
@@ -70,24 +53,21 @@ function LoginPage() {
           }
 
           .login-input::placeholder {
-            color: rgba(229, 231, 235, 0.45);
+            color: #646a73;
           }
 
           .login-input:focus {
-            border-color: rgba(129, 140, 248, 0.95) !important;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.16), 0 0 26px rgba(129, 140, 248, 0.18) !important;
-            background: rgba(15, 23, 42, 0.9) !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+            background: #121214 !important;
           }
 
           .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 45px rgba(88, 101, 242, 0.45);
-            filter: brightness(1.08);
+            background: #2563eb !important;
           }
 
           .login-link:hover {
             color: #ffffff !important;
-            text-shadow: 0 0 18px rgba(129, 140, 248, 0.7);
           }
 
           @media (max-width: 1120px) {
@@ -109,34 +89,28 @@ function LoginPage() {
 
           @media (max-height: 760px) {
             .login-content {
-              transform: scale(0.94);
-              transform-origin: center;
+              align-items: start !important;
             }
           }
         `}
       </style>
 
-      <div style={styles.backgroundOrbOne} />
-      <div style={styles.backgroundOrbTwo} />
-      <div style={styles.backgroundOrbThree} />
-
       <main className="login-content" style={styles.content}>
         <section style={styles.leftPanel}>
-          <div style={styles.badge}>Realtime chat</div>
+          <div style={styles.badge}>Discordia / acesso</div>
 
           <h1 style={styles.heroTitle}>
-            Entre no
-            <span style={styles.heroHighlight}> Discordia</span>
+            Chat em tempo real para salas e jogos.
           </h1>
 
           <p style={styles.heroText}>
-            Converse em salas ao vivo, acompanhe mensagens em tempo real e entre em uma experiência feita para parecer viva.
+            Acompanhe conversas ao vivo, entre nas salas certas e desafie outros membros quando quiser jogar.
           </p>
 
           <div style={styles.featureList}>
             <div style={styles.featureCard}>
               <span style={styles.featureIcon}>#</span>
-              <div>
+              <div style={styles.featureContent}>
                 <strong style={styles.featureTitle}>Salas em tempo real</strong>
                 <p style={styles.featureText}>Canais com histórico, presença e troca instantânea.</p>
               </div>
@@ -144,23 +118,28 @@ function LoginPage() {
 
             <div style={styles.featureCard}>
               <span style={styles.featureIcon}>✦</span>
-              <div>
-                <strong style={styles.featureTitle}>Interface premium</strong>
-                <p style={styles.featureText}>Glow, profundidade e um visual inspirado em comunidades modernas.</p>
+              <div style={styles.featureContent}>
+                <strong style={styles.featureTitle}>Fluxo direto</strong>
+                <p style={styles.featureText}>Entre na sua conta e continue de onde parou.</p>
               </div>
             </div>
 
             <div style={styles.featureCard}>
               <span style={styles.featureIcon}>▶</span>
-              <div>
-                <strong style={styles.featureTitle}>Pronto para jogos</strong>
-                <p style={styles.featureText}>Base preparada para experiências multiplayer dentro do chat.</p>
+              <div style={styles.featureContent}>
+                <strong style={styles.featureTitle}>Jogos integrados</strong>
+                <p style={styles.featureText}>Desafios multiplayer dentro da propria sala de conversa.</p>
               </div>
             </div>
           </div>
         </section>
 
         <section style={styles.card}>
+          <div style={styles.cardStatus}>
+            <span style={styles.statusDot} />
+            Ambiente online
+          </div>
+
           <div style={styles.logoArea}>
             <div style={styles.logoIcon}>D</div>
             <div>
@@ -234,60 +213,23 @@ const styles = {
   container: {
     minHeight: '100vh',
     position: 'relative',
-    overflow: 'hidden',
+    overflow: 'auto',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '32px',
-    background:
-      'radial-gradient(circle at top left, rgba(88, 101, 242, 0.25), transparent 32%), radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.22), transparent 35%), linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%)',
-    color: '#f8fafc',
-  },
-
-  backgroundOrbOne: {
-    position: 'absolute',
-    width: '360px',
-    height: '360px',
-    borderRadius: '999px',
-    background: 'rgba(88, 101, 242, 0.28)',
-    filter: 'blur(80px)',
-    top: '-90px',
-    left: '-80px',
-    animation: 'floatGlow 7s ease-in-out infinite',
-  },
-
-  backgroundOrbTwo: {
-    position: 'absolute',
-    width: '420px',
-    height: '420px',
-    borderRadius: '999px',
-    background: 'rgba(168, 85, 247, 0.2)',
-    filter: 'blur(90px)',
-    bottom: '-140px',
-    right: '-100px',
-    animation: 'floatGlow 9s ease-in-out infinite',
-  },
-
-  backgroundOrbThree: {
-    position: 'absolute',
-    width: '260px',
-    height: '260px',
-    borderRadius: '999px',
-    background: 'rgba(34, 211, 238, 0.12)',
-    filter: 'blur(75px)',
-    top: '42%',
-    left: '48%',
-    animation: 'floatGlow 8s ease-in-out infinite',
+    background: '#121214',
+    color: '#f1f1f3',
   },
 
   content: {
     width: '100%',
-    maxWidth: '1120px',
+    maxWidth: '1080px',
     position: 'relative',
     zIndex: 2,
     display: 'grid',
-    gridTemplateColumns: '1.1fr 0.9fr',
-    gap: '48px',
+    gridTemplateColumns: 'minmax(0, 1fr) 420px',
+    gap: '32px',
     alignItems: 'center',
     animation: 'fadeUp 0.7s ease forwards',
   },
@@ -295,103 +237,127 @@ const styles = {
   leftPanel: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '24px',
+    gap: '22px',
+    padding: '28px',
+    border: '1px solid #2f3137',
+    borderRadius: '8px',
+    background: '#18191c',
   },
 
   badge: {
     width: 'fit-content',
-    padding: '9px 14px',
-    borderRadius: '999px',
-    background: 'rgba(88, 101, 242, 0.14)',
-    border: '1px solid rgba(129, 140, 248, 0.35)',
-    color: '#c7d2fe',
-    fontSize: '13px',
+    padding: '6px 10px',
+    borderRadius: '4px',
+    background: '#202226',
+    border: '1px solid #34363b',
+    color: '#9ca3af',
+    fontSize: '11px',
     fontWeight: 700,
-    letterSpacing: '0.4px',
+    letterSpacing: '1px',
     textTransform: 'uppercase',
-    boxShadow: '0 0 28px rgba(88, 101, 242, 0.16)',
   },
 
   heroTitle: {
     margin: 0,
-    maxWidth: '620px',
-    fontSize: 'clamp(44px, 6vw, 76px)',
-    lineHeight: '0.96',
-    letterSpacing: '-3px',
-    fontWeight: 900,
-  },
-
-  heroHighlight: {
-    background: 'linear-gradient(135deg, #818cf8, #c084fc, #22d3ee)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    maxWidth: '560px',
+    fontSize: 'clamp(36px, 5vw, 58px)',
+    lineHeight: 1,
+    letterSpacing: 0,
+    fontWeight: 800,
   },
 
   heroText: {
     margin: 0,
-    maxWidth: '560px',
-    color: 'rgba(226, 232, 240, 0.76)',
-    fontSize: '18px',
-    lineHeight: 1.7,
+    maxWidth: '520px',
+    color: '#b8bcc6',
+    fontSize: '16px',
+    lineHeight: 1.65,
   },
 
   featureList: {
     display: 'grid',
-    gap: '14px',
-    maxWidth: '560px',
-    marginTop: '8px',
+    gap: '10px',
+    maxWidth: '540px',
+    marginTop: '4px',
   },
 
   featureCard: {
     display: 'flex',
     alignItems: 'center',
-    gap: '16px',
-    padding: '16px',
-    borderRadius: '18px',
-    background: 'rgba(15, 23, 42, 0.52)',
-    border: '1px solid rgba(148, 163, 184, 0.16)',
-    boxShadow: '0 18px 60px rgba(0, 0, 0, 0.18)',
-    backdropFilter: 'blur(18px)',
+    gap: '12px',
+    padding: '12px',
+    borderRadius: '6px',
+    background: '#202226',
+    border: '1px solid #303239',
   },
 
   featureIcon: {
+    flex: '0 0 42px',
+    width: '42px',
     minWidth: '42px',
     height: '42px',
-    borderRadius: '14px',
+    borderRadius: '5px',
     display: 'grid',
     placeItems: 'center',
-    background: 'linear-gradient(135deg, rgba(88, 101, 242, 0.95), rgba(168, 85, 247, 0.9))',
-    color: '#ffffff',
+    background: '#16171a',
+    border: '1px solid #363942',
+    color: '#60a5fa',
     fontWeight: 900,
-    boxShadow: '0 12px 30px rgba(88, 101, 242, 0.28)',
+    lineHeight: 1,
+  },
+
+  featureContent: {
+    minHeight: '42px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
   },
 
   featureTitle: {
     display: 'block',
-    color: '#ffffff',
+    color: '#f1f1f3',
     fontSize: '15px',
     marginBottom: '4px',
   },
 
   featureText: {
     margin: 0,
-    color: 'rgba(203, 213, 225, 0.68)',
+    color: '#9399a3',
     fontSize: '13px',
     lineHeight: 1.5,
   },
 
   card: {
     width: '100%',
-    maxWidth: '440px',
+    maxWidth: '420px',
     justifySelf: 'end',
-    padding: '34px',
-    borderRadius: '30px',
-    background:
-      'linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.68))',
-    border: '1px solid rgba(148, 163, 184, 0.18)',
-    boxShadow:
-      '0 28px 90px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-    backdropFilter: 'blur(24px)',
+    padding: '28px',
+    borderRadius: '8px',
+    background: '#1a1b1e',
+    border: '1px solid #34363b',
+    boxShadow: '0 18px 48px rgba(0, 0, 0, 0.32)',
+  },
+
+  cardStatus: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    width: 'fit-content',
+    marginBottom: '22px',
+    padding: '6px 10px',
+    borderRadius: '4px',
+    background: '#14251b',
+    color: '#86efac',
+    border: '1px solid #1f5133',
+    fontSize: '12px',
+    fontWeight: 700,
+  },
+
+  statusDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    background: '#22c55e',
   },
 
   logoArea: {
@@ -404,26 +370,25 @@ const styles = {
   logoIcon: {
     width: '58px',
     height: '58px',
-    borderRadius: '20px',
+    borderRadius: '8px',
     display: 'grid',
     placeItems: 'center',
-    background: 'linear-gradient(135deg, #5865f2, #9333ea)',
+    background: '#2563eb',
     color: '#ffffff',
     fontSize: '28px',
     fontWeight: 900,
-    boxShadow: '0 18px 45px rgba(88, 101, 242, 0.42)',
   },
 
   title: {
     margin: 0,
-    fontSize: '27px',
+    fontSize: '25px',
     lineHeight: 1.1,
-    letterSpacing: '-0.8px',
+    letterSpacing: 0,
   },
 
   subtitle: {
     margin: '7px 0 0',
-    color: 'rgba(203, 213, 225, 0.68)',
+    color: '#9ca3af',
     fontSize: '14px',
   },
 
@@ -437,7 +402,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '9px',
-    color: 'rgba(226, 232, 240, 0.84)',
+    color: '#c9cdd5',
     fontSize: '13px',
     fontWeight: 700,
   },
@@ -445,13 +410,13 @@ const styles = {
   input: {
     width: '100%',
     boxSizing: 'border-box',
-    background: 'rgba(2, 6, 23, 0.62)',
-    border: '1px solid rgba(148, 163, 184, 0.18)',
+    background: '#121214',
+    border: '1px solid #34363b',
     outline: 'none',
-    padding: '15px 16px',
-    borderRadius: '15px',
-    color: '#f8fafc',
-    fontSize: '15px',
+    padding: '13px 14px',
+    borderRadius: '6px',
+    color: '#f1f1f3',
+    fontSize: '14px',
     transition: '0.22s ease',
   },
 
@@ -459,24 +424,23 @@ const styles = {
     marginTop: '8px',
     width: '100%',
     border: 'none',
-    background: 'linear-gradient(135deg, #5865f2, #7c3aed)',
+    background: '#3b82f6',
     color: '#ffffff',
-    padding: '15px',
-    borderRadius: '16px',
-    fontWeight: 900,
-    fontSize: '15px',
-    letterSpacing: '0.2px',
+    padding: '13px',
+    borderRadius: '6px',
+    fontWeight: 800,
+    fontSize: '14px',
+    letterSpacing: 0,
     transition: '0.22s ease',
-    boxShadow: '0 15px 38px rgba(88, 101, 242, 0.35)',
   },
 
   errorMessage: {
     margin: '-4px 0 0',
     padding: '12px 14px',
-    borderRadius: '14px',
-    background: 'rgba(248, 113, 113, 0.12)',
-    border: '1px solid rgba(248, 113, 113, 0.22)',
-    color: '#fecaca',
+    borderRadius: '6px',
+    background: '#351c1f',
+    border: '1px solid #713239',
+    color: '#fca5a5',
     fontSize: '13px',
     fontWeight: 800,
     textAlign: 'left',
@@ -492,11 +456,11 @@ const styles = {
   dividerLine: {
     flex: 1,
     height: '1px',
-    background: 'rgba(148, 163, 184, 0.18)',
+    background: '#303239',
   },
 
   dividerText: {
-    color: 'rgba(203, 213, 225, 0.5)',
+    color: '#727780',
     fontSize: '12px',
     textTransform: 'uppercase',
     letterSpacing: '0.8px',
@@ -506,12 +470,12 @@ const styles = {
   footerText: {
     margin: 0,
     textAlign: 'center',
-    color: 'rgba(203, 213, 225, 0.72)',
+    color: '#a7acb5',
     fontSize: '14px',
   },
 
   link: {
-    color: '#a5b4fc',
+    color: '#60a5fa',
     fontWeight: 900,
     textDecoration: 'none',
     transition: '0.2s ease',

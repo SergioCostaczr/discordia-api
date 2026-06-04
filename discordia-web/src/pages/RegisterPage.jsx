@@ -15,7 +15,7 @@ function RegisterPage() {
     event.preventDefault()
 
     if (!username.trim() || !password.trim()) {
-      setErrorMessage('Preencha usuário e senha.')
+      setErrorMessage('Preencha usuario e senha.')
       return
     }
 
@@ -43,11 +43,11 @@ function RegisterPage() {
         normalizedMessage.includes('usuario') ||
         normalizedMessage.includes('usuário')
       ) {
-        setErrorMessage('Esse usuário já existe. Tente outro nome.')
+        setErrorMessage('Esse usuario ja existe. Tente outro nome.')
         return
       }
 
-      setErrorMessage('Não foi possível criar sua conta agora.')
+      setErrorMessage('Nao foi possivel criar sua conta agora.')
     } finally {
       setLoading(false)
     }
@@ -57,27 +57,10 @@ function RegisterPage() {
     <div style={styles.container}>
       <style>
         {`
-          @keyframes floatGlow {
-            0% {
-              transform: translateY(0px);
-              opacity: 0.75;
-            }
-
-            50% {
-              transform: translateY(-18px);
-              opacity: 1;
-            }
-
-            100% {
-              transform: translateY(0px);
-              opacity: 0.75;
-            }
-          }
-
           @keyframes fadeUp {
             from {
               opacity: 0;
-              transform: translateY(20px);
+              transform: translateY(10px);
             }
 
             to {
@@ -87,24 +70,21 @@ function RegisterPage() {
           }
 
           .register-input::placeholder {
-            color: rgba(229, 231, 235, 0.45);
+            color: #646a73;
           }
 
           .register-input:focus {
-            border-color: rgba(34, 211, 238, 0.95) !important;
-            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.14), 0 0 26px rgba(34, 211, 238, 0.18) !important;
-            background: rgba(15, 23, 42, 0.9) !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+            background: #121214 !important;
           }
 
           .register-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 45px rgba(34, 211, 238, 0.32);
-            filter: brightness(1.08);
+            background: #2563eb !important;
           }
 
           .register-link:hover {
             color: #ffffff !important;
-            text-shadow: 0 0 18px rgba(34, 211, 238, 0.7);
           }
 
           @media (max-width: 1120px) {
@@ -126,34 +106,34 @@ function RegisterPage() {
 
           @media (max-height: 760px) {
             .register-content {
-              transform: scale(0.94);
-              transform-origin: center;
+              align-items: start !important;
             }
           }
         `}
       </style>
 
-      <div style={styles.backgroundOrbOne} />
-      <div style={styles.backgroundOrbTwo} />
-      <div style={styles.backgroundOrbThree} />
-
       <main className="register-content" style={styles.content}>
         <section style={styles.card}>
+          <div style={styles.cardStatus}>
+            <span style={styles.statusDot} />
+            Cadastro aberto
+          </div>
+
           <div style={styles.logoArea}>
             <div style={styles.logoIcon}>D</div>
             <div>
               <h2 style={styles.title}>Crie sua conta</h2>
-              <p style={styles.subtitle}>Comece sua experiência no Discordia</p>
+              <p style={styles.subtitle}>Entre nas salas do Discordia</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} style={styles.form}>
             <label style={styles.label}>
-              Usuário
+              Usuario
               <input
                 className="register-input"
                 type="text"
-                placeholder="Escolha um nome de usuário"
+                placeholder="Escolha um nome de usuario"
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
                 style={styles.input}
@@ -186,18 +166,18 @@ function RegisterPage() {
               }}
               disabled={loading}
             >
-              {loading ? 'Criando conta...' : 'Entrar para o Discordia'}
+              {loading ? 'Criando conta...' : 'Criar conta'}
             </button>
           </form>
 
           <div style={styles.divider}>
             <span style={styles.dividerLine} />
-            <span style={styles.dividerText}>já faz parte?</span>
+            <span style={styles.dividerText}>ja faz parte?</span>
             <span style={styles.dividerLine} />
           </div>
 
           <p style={styles.footerText}>
-            Já possui uma conta?{' '}
+            Ja possui uma conta?{' '}
             <Link className="register-link" to="/" style={styles.link}>
               Fazer login
             </Link>
@@ -208,22 +188,18 @@ function RegisterPage() {
           <div style={styles.badge}>Nova comunidade</div>
 
           <h1 style={styles.heroTitle}>
-            Sua sala.
-            <br />
-            Sua voz.
-            <br />
-            <span style={styles.heroHighlight}>Seu espaço.</span>
+            Entre em salas ao vivo e jogue com outros membros.
           </h1>
 
           <p style={styles.heroText}>
-            Crie sua conta para entrar em salas ao vivo, conversar em tempo real e participar de uma experiência social mais dinâmica.
+            Crie sua conta para conversar em tempo real, acompanhar presenca e participar de desafios dentro do chat.
           </p>
 
           <div style={styles.previewCard}>
             <div style={styles.previewHeader}>
-              <div style={styles.previewServerIcon}>D</div>
+              <div style={styles.previewServerIcon}>#</div>
               <div>
-                <strong style={styles.previewTitle}>discordia/general</strong>
+                <strong style={styles.previewTitle}>discordia/geral</strong>
                 <p style={styles.previewSubtitle}>comunidade online</p>
               </div>
             </div>
@@ -233,7 +209,7 @@ function RegisterPage() {
                 <div style={styles.avatarOne}>R</div>
                 <div style={styles.messageBubble}>
                   <strong>Renato</strong>
-                  <span>alguém cria uma sala pra jogar depois?</span>
+                  <span>alguem cria uma sala pra jogar depois?</span>
                 </div>
               </div>
 
@@ -249,7 +225,7 @@ function RegisterPage() {
                 <span style={styles.typingDot} />
                 <span style={styles.typingDot} />
                 <span style={styles.typingDot} />
-                <p style={styles.typingText}>alguém está digitando...</p>
+                <p style={styles.typingText}>alguem esta digitando...</p>
               </div>
             </div>
           </div>
@@ -263,75 +239,55 @@ const styles = {
   container: {
     minHeight: '100vh',
     position: 'relative',
-    overflow: 'hidden',
+    overflow: 'auto',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '32px',
-    background:
-      'radial-gradient(circle at top right, rgba(34, 211, 238, 0.2), transparent 34%), radial-gradient(circle at bottom left, rgba(88, 101, 242, 0.24), transparent 34%), linear-gradient(135deg, #020617 0%, #0f172a 48%, #111827 100%)',
-    color: '#f8fafc',
-  },
-
-  backgroundOrbOne: {
-    position: 'absolute',
-    width: '380px',
-    height: '380px',
-    borderRadius: '999px',
-    background: 'rgba(34, 211, 238, 0.18)',
-    filter: 'blur(85px)',
-    top: '-110px',
-    right: '-70px',
-    animation: 'floatGlow 7s ease-in-out infinite',
-  },
-
-  backgroundOrbTwo: {
-    position: 'absolute',
-    width: '420px',
-    height: '420px',
-    borderRadius: '999px',
-    background: 'rgba(88, 101, 242, 0.24)',
-    filter: 'blur(90px)',
-    bottom: '-150px',
-    left: '-100px',
-    animation: 'floatGlow 9s ease-in-out infinite',
-  },
-
-  backgroundOrbThree: {
-    position: 'absolute',
-    width: '260px',
-    height: '260px',
-    borderRadius: '999px',
-    background: 'rgba(168, 85, 247, 0.14)',
-    filter: 'blur(75px)',
-    top: '46%',
-    left: '46%',
-    animation: 'floatGlow 8s ease-in-out infinite',
+    background: '#121214',
+    color: '#f1f1f3',
   },
 
   content: {
     width: '100%',
-    maxWidth: '1120px',
-    position: 'relative',
-    zIndex: 2,
+    maxWidth: '1080px',
     display: 'grid',
-    gridTemplateColumns: '0.9fr 1.1fr',
-    gap: '48px',
+    gridTemplateColumns: '420px minmax(0, 1fr)',
+    gap: '32px',
     alignItems: 'center',
     animation: 'fadeUp 0.7s ease forwards',
   },
 
   card: {
     width: '100%',
-    maxWidth: '440px',
-    padding: '34px',
-    borderRadius: '30px',
-    background:
-      'linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.68))',
-    border: '1px solid rgba(148, 163, 184, 0.18)',
-    boxShadow:
-      '0 28px 90px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-    backdropFilter: 'blur(24px)',
+    maxWidth: '420px',
+    padding: '28px',
+    borderRadius: '8px',
+    background: '#1a1b1e',
+    border: '1px solid #34363b',
+    boxShadow: '0 18px 48px rgba(0, 0, 0, 0.32)',
+  },
+
+  cardStatus: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    width: 'fit-content',
+    marginBottom: '22px',
+    padding: '6px 10px',
+    borderRadius: '4px',
+    background: '#14251b',
+    color: '#86efac',
+    border: '1px solid #1f5133',
+    fontSize: '12px',
+    fontWeight: 700,
+  },
+
+  statusDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    background: '#22c55e',
   },
 
   logoArea: {
@@ -344,26 +300,25 @@ const styles = {
   logoIcon: {
     width: '58px',
     height: '58px',
-    borderRadius: '20px',
+    borderRadius: '8px',
     display: 'grid',
     placeItems: 'center',
-    background: 'linear-gradient(135deg, #22d3ee, #5865f2)',
+    background: '#2563eb',
     color: '#ffffff',
     fontSize: '28px',
     fontWeight: 900,
-    boxShadow: '0 18px 45px rgba(34, 211, 238, 0.28)',
   },
 
   title: {
     margin: 0,
-    fontSize: '27px',
+    fontSize: '25px',
     lineHeight: 1.1,
-    letterSpacing: '-0.8px',
+    letterSpacing: 0,
   },
 
   subtitle: {
     margin: '7px 0 0',
-    color: 'rgba(203, 213, 225, 0.68)',
+    color: '#9ca3af',
     fontSize: '14px',
   },
 
@@ -377,7 +332,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '9px',
-    color: 'rgba(226, 232, 240, 0.84)',
+    color: '#c9cdd5',
     fontSize: '13px',
     fontWeight: 700,
   },
@@ -385,13 +340,13 @@ const styles = {
   input: {
     width: '100%',
     boxSizing: 'border-box',
-    background: 'rgba(2, 6, 23, 0.62)',
-    border: '1px solid rgba(148, 163, 184, 0.18)',
+    background: '#121214',
+    border: '1px solid #34363b',
     outline: 'none',
-    padding: '15px 16px',
-    borderRadius: '15px',
-    color: '#f8fafc',
-    fontSize: '15px',
+    padding: '13px 14px',
+    borderRadius: '6px',
+    color: '#f1f1f3',
+    fontSize: '14px',
     transition: '0.22s ease',
   },
 
@@ -399,24 +354,23 @@ const styles = {
     marginTop: '8px',
     width: '100%',
     border: 'none',
-    background: 'linear-gradient(135deg, #22d3ee, #5865f2)',
+    background: '#3b82f6',
     color: '#ffffff',
-    padding: '15px',
-    borderRadius: '16px',
-    fontWeight: 900,
-    fontSize: '15px',
-    letterSpacing: '0.2px',
+    padding: '13px',
+    borderRadius: '6px',
+    fontWeight: 800,
+    fontSize: '14px',
+    letterSpacing: 0,
     transition: '0.22s ease',
-    boxShadow: '0 15px 38px rgba(34, 211, 238, 0.24)',
   },
 
   errorMessage: {
     margin: '-4px 0 0',
     padding: '12px 14px',
-    borderRadius: '14px',
-    background: 'rgba(248, 113, 113, 0.12)',
-    border: '1px solid rgba(248, 113, 113, 0.22)',
-    color: '#fecaca',
+    borderRadius: '6px',
+    background: '#351c1f',
+    border: '1px solid #713239',
+    color: '#fca5a5',
     fontSize: '13px',
     fontWeight: 800,
     textAlign: 'left',
@@ -432,11 +386,11 @@ const styles = {
   dividerLine: {
     flex: 1,
     height: '1px',
-    background: 'rgba(148, 163, 184, 0.18)',
+    background: '#303239',
   },
 
   dividerText: {
-    color: 'rgba(203, 213, 225, 0.5)',
+    color: '#727780',
     fontSize: '12px',
     textTransform: 'uppercase',
     letterSpacing: '0.8px',
@@ -446,12 +400,12 @@ const styles = {
   footerText: {
     margin: 0,
     textAlign: 'center',
-    color: 'rgba(203, 213, 225, 0.72)',
+    color: '#a7acb5',
     fontSize: '14px',
   },
 
   link: {
-    color: '#67e8f9',
+    color: '#60a5fa',
     fontWeight: 900,
     textDecoration: 'none',
     transition: '0.2s ease',
@@ -460,158 +414,145 @@ const styles = {
   rightPanel: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '24px',
+    gap: '22px',
+    padding: '28px',
+    border: '1px solid #2f3137',
+    borderRadius: '8px',
+    background: '#18191c',
   },
 
   badge: {
     width: 'fit-content',
-    padding: '9px 14px',
-    borderRadius: '999px',
-    background: 'rgba(34, 211, 238, 0.12)',
-    border: '1px solid rgba(34, 211, 238, 0.3)',
-    color: '#a5f3fc',
-    fontSize: '13px',
+    padding: '6px 10px',
+    borderRadius: '4px',
+    background: '#202226',
+    border: '1px solid #34363b',
+    color: '#9ca3af',
+    fontSize: '11px',
     fontWeight: 700,
-    letterSpacing: '0.4px',
+    letterSpacing: '1px',
     textTransform: 'uppercase',
-    boxShadow: '0 0 28px rgba(34, 211, 238, 0.12)',
   },
 
   heroTitle: {
     margin: 0,
-    maxWidth: '650px',
-    fontSize: 'clamp(44px, 6vw, 76px)',
-    lineHeight: '0.96',
-    letterSpacing: '-3px',
-    fontWeight: 900,
-  },
-
-  heroHighlight: {
-    background: 'linear-gradient(135deg, #22d3ee, #818cf8, #c084fc)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    maxWidth: '560px',
+    fontSize: 'clamp(34px, 5vw, 54px)',
+    lineHeight: 1,
+    letterSpacing: 0,
+    fontWeight: 800,
   },
 
   heroText: {
     margin: 0,
-    maxWidth: '560px',
-    color: 'rgba(226, 232, 240, 0.76)',
-    fontSize: '18px',
-    lineHeight: 1.7,
+    maxWidth: '520px',
+    color: '#b8bcc6',
+    fontSize: '16px',
+    lineHeight: 1.65,
   },
 
   previewCard: {
-    maxWidth: '560px',
-    padding: '18px',
-    borderRadius: '26px',
-    background:
-      'linear-gradient(180deg, rgba(15, 23, 42, 0.74), rgba(2, 6, 23, 0.58))',
-    border: '1px solid rgba(148, 163, 184, 0.16)',
-    boxShadow:
-      '0 28px 80px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
-    backdropFilter: 'blur(20px)',
+    padding: '16px',
+    borderRadius: '8px',
+    background: '#202226',
+    border: '1px solid #303239',
   },
 
   previewHeader: {
     display: 'flex',
     alignItems: 'center',
-    gap: '14px',
-    padding: '10px 10px 18px',
-    borderBottom: '1px solid rgba(148, 163, 184, 0.13)',
+    gap: '12px',
+    paddingBottom: '14px',
+    borderBottom: '1px solid #303239',
   },
 
   previewServerIcon: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '15px',
+    width: '42px',
+    height: '42px',
+    borderRadius: '5px',
     display: 'grid',
     placeItems: 'center',
-    background: 'linear-gradient(135deg, #5865f2, #9333ea)',
-    color: '#ffffff',
+    background: '#16171a',
+    border: '1px solid #363942',
+    color: '#60a5fa',
     fontWeight: 900,
   },
 
   previewTitle: {
-    display: 'block',
-    color: '#ffffff',
+    color: '#f1f1f3',
     fontSize: '15px',
   },
 
   previewSubtitle: {
     margin: '4px 0 0',
-    color: 'rgba(203, 213, 225, 0.55)',
-    fontSize: '13px',
+    color: '#9399a3',
+    fontSize: '12px',
   },
 
   messageList: {
     display: 'grid',
-    gap: '14px',
-    padding: '18px 8px 8px',
+    gap: '12px',
+    paddingTop: '14px',
   },
 
   messageItem: {
     display: 'flex',
-    gap: '12px',
     alignItems: 'flex-start',
+    gap: '10px',
   },
 
   avatarOne: {
-    minWidth: '38px',
-    height: '38px',
-    borderRadius: '14px',
+    width: '34px',
+    height: '34px',
+    borderRadius: '50%',
     display: 'grid',
     placeItems: 'center',
-    background: 'linear-gradient(135deg, #f97316, #ec4899)',
-    color: '#ffffff',
-    fontWeight: 900,
+    background: '#334155',
+    color: '#e2e8f0',
+    fontWeight: 800,
+    flex: '0 0 auto',
   },
 
   avatarTwo: {
-    minWidth: '38px',
-    height: '38px',
-    borderRadius: '14px',
+    width: '34px',
+    height: '34px',
+    borderRadius: '50%',
     display: 'grid',
     placeItems: 'center',
-    background: 'linear-gradient(135deg, #22d3ee, #5865f2)',
+    background: '#2563eb',
     color: '#ffffff',
-    fontWeight: 900,
+    fontWeight: 800,
+    flex: '0 0 auto',
   },
 
   messageBubble: {
     display: 'grid',
     gap: '4px',
-    padding: '12px 14px',
-    borderRadius: '16px',
-    background: 'rgba(30, 41, 59, 0.6)',
-    border: '1px solid rgba(148, 163, 184, 0.12)',
-    color: 'rgba(226, 232, 240, 0.78)',
+    padding: '9px 11px',
+    borderRadius: '6px',
+    background: '#18191c',
+    border: '1px solid #303239',
+    color: '#b8bcc6',
     fontSize: '13px',
   },
 
   typingRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
-    marginLeft: '50px',
-    padding: '9px 12px',
-    width: 'fit-content',
-    borderRadius: '999px',
-    background: 'rgba(15, 23, 42, 0.65)',
-    border: '1px solid rgba(148, 163, 184, 0.12)',
+    gap: '5px',
+    color: '#8a9099',
+    fontSize: '12px',
   },
 
   typingDot: {
-    width: '6px',
-    height: '6px',
-    borderRadius: '999px',
-    background: '#67e8f9',
-    boxShadow: '0 0 14px rgba(103, 232, 249, 0.7)',
+    width: '5px',
+    height: '5px',
+    borderRadius: '50%',
+    background: '#8a9099',
   },
 
   typingText: {
-    margin: '0 0 0 6px',
-    color: 'rgba(203, 213, 225, 0.56)',
-    fontSize: '12px',
+    margin: '0 0 0 4px',
   },
 }
 
