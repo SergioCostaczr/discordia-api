@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: discordia-prod-postgres
+    environment:
+      POSTGRES_DB: discordia
+      POSTGRES_USER: discordia
+      POSTGRES_PASSWORD: discordia
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: discordia-prod-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  backend:
+    image: discordia-backend
+    container_name: discordia-prod-backend
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      APP_ALLOWED_ORIGINS: http://localhost
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/discordia
+      SPRING_DATASOURCE_USERNAME: discordia
+      SPRING_DATASOURCE_PASSWORD: discordia
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      JWT_SECRET: change-this-secret-before-deploying
+      JWT_EXPIRATION: 86400000
+    ports:
+      - "8080:8080"
+
+  frontend:
+    image: discordia-frontend
+    container_name: discordia-prod-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
