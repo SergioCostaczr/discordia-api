@@ -1,4 +1,5 @@
 import api from '../api/axios'
+import { API_BASE_URL } from '../config/api'
 import { getAuthToken } from './authSession'
 
 export async function getRooms() {
@@ -19,7 +20,7 @@ export function leaveRoomOnUnload(roomId) {
 
   if (!token) return
 
-  fetch(`http://localhost:8080/api/rooms/${roomId}/leave`, {
+  fetch(`${API_BASE_URL}/api/rooms/${roomId}/leave`, {
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${token}`,

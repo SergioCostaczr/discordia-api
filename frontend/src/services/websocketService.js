@@ -1,5 +1,6 @@
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
+import { WS_URL } from '../config/api'
 import { getAuthToken } from './authSession'
 
 let stompClient = null
@@ -9,7 +10,7 @@ export function connectWebSocket() {
 
   stompClient = new Client({
     webSocketFactory: () =>
-      new SockJS('http://localhost:8080/ws'),
+      new SockJS(WS_URL),
 
     connectHeaders: {
       Authorization: `Bearer ${token}`,
