@@ -1,6 +1,7 @@
 package com.github.sergiocostaczr.discordia.controller.rest;
 
 import com.github.sergiocostaczr.discordia.dto.request.ChallengeRequest;
+import com.github.sergiocostaczr.discordia.dto.request.RpsMoveRequest;
 import com.github.sergiocostaczr.discordia.dto.response.ChallengeResponse;
 import com.github.sergiocostaczr.discordia.service.GameService;
 import jakarta.validation.Valid;
@@ -29,12 +30,11 @@ public class GameController {
     }
 
     @PostMapping("/{roundId}/accept")
-    public ResponseEntity<Void> accept(
+    public ResponseEntity<ChallengeResponse> accept(
             @PathVariable UUID roundId,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        gameService.acceptChallenge(roundId, userDetails.getUsername());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gameService.acceptChallenge(roundId, userDetails.getUsername()));
     }
 
     @PostMapping("/{roundId}/decline")
@@ -43,6 +43,16 @@ public class GameController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         gameService.declineChallenge(roundId, userDetails.getUsername());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{roundId}/move")
+    public ResponseEntity<Void> move(
+            @PathVariable UUID roundId,
+            @Valid @RequestBody RpsMoveRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        gameService.submitMove(roundId, userDetails.getUsername(), request.move());
         return ResponseEntity.ok().build();
     }
 }

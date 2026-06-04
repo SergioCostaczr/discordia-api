@@ -1,8 +1,8 @@
 package com.github.sergiocostaczr.discordia.controller.rest;
 
-import com.github.sergiocostaczr.discordia.dto.request.RegisterRequest;
 import com.github.sergiocostaczr.discordia.dto.request.RoomRequest;
 import com.github.sergiocostaczr.discordia.dto.response.ChatMessageResponse;
+import com.github.sergiocostaczr.discordia.dto.response.RoomMemberResponse;
 import com.github.sergiocostaczr.discordia.dto.response.RoomResponse;
 import com.github.sergiocostaczr.discordia.service.ChatService;
 import com.github.sergiocostaczr.discordia.service.RoomService;
@@ -26,7 +26,6 @@ public class RoomController {
     private final RoomService roomService;
     private final ChatService chatService;
 
-
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RoomResponse> create(
@@ -49,6 +48,21 @@ public class RoomController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{roomId}/leave")
+    public ResponseEntity<Void> leave(
+            @PathVariable UUID roomId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        roomService.leave(roomId, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{roomId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable UUID roomId) {
+        roomService.delete(roomId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{roomId}/messages")
     public ResponseEntity<Page<ChatMessageResponse>> getHistory(
             @PathVariable UUID roomId,
@@ -56,5 +70,10 @@ public class RoomController {
             @RequestParam(defaultValue = "20") int size) {
 
         return ResponseEntity.ok(chatService.getHistory(roomId, page, size));
+    }
+
+    @GetMapping("/{roomId}/members")
+    public ResponseEntity<List<RoomMemberResponse>> getMembers(@PathVariable UUID roomId) {
+        return ResponseEntity.ok(roomService.listMembers(roomId));
     }
 }

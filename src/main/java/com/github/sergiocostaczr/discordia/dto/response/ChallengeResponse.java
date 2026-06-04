@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record ChallengeResponse(
         UUID roundId,
+        UUID roomId,
         String challengerUsername,
         String challengedUsername,
         String status
@@ -12,6 +13,7 @@ public record ChallengeResponse(
     public static ChallengeResponse from(GameRound round) {
         return new ChallengeResponse(
                 round.getId(),
+                round.getRoom().getId(),
                 round.getChallenger().getUsername(),
                 round.getChallenged().getUsername(),
                 round.getStatus().name()

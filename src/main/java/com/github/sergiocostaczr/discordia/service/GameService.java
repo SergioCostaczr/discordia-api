@@ -24,6 +24,7 @@ public class GameService {
     private final RoomMemberRepository roomMemberRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
+    @Transactional
     public ChallengeResponse createChallenge(ChallengeRequest request, String challengerUsername) {
         var challenger = userRepository.findByUsername(challengerUsername).orElseThrow();
         var challenged = userRepository.findById(request.challengedUserId())
@@ -40,13 +41,12 @@ public class GameService {
             throw new IllegalArgumentException("Ambos os usuários precisam estar na sala.");
         }
 
-        boolean activeRoundExists = gameRoundRepository
-                .existsByRoomIdAndChallengerIdAndChallengedIdAndStatusIn(
-                        room.getId(),
-                        challenger.getId(),
-                        challenged.getId(),
-                        List.of(RoundStatus.WAITING, RoundStatus.IN_PROGRESS)
-                );
+        boolean activeRoundExists = gameRoundRepository.existsActiveBetweenUsers(
+                room.getId(),
+                challenger.getId(),
+                challenged.getId(),
+                List.of(RoundStatus.WAITING, RoundStatus.IN_PROGRESS)
+        );
 
         if (activeRoundExists) {
             throw new IllegalStateException("Já existe uma partida ativa entre esses jogadores.");
@@ -64,7 +64,13 @@ public class GameService {
         messagingTemplate.convertAndSendToUser(
                 challenged.getUsername(),
                 "/queue/challenges",
-                new ChallengeNotification(saved.getId(), challenger.getUsername(), room.getName())
+                new ChallengeNotification(
+                        saved.getId(),
+                        room.getId(),
+                        challenger.getUsername(),
+                        challenged.getUsername(),
+                        room.getName()
+                )
         );
 
         return ChallengeResponse.from(saved);
@@ -95,6 +101,12 @@ public class GameService {
         if (saved.getChallengerMove() != null && saved.getChallengedMove() != null) {
             resolve(saved);
         }
+    }
+
+    @Transactional
+    public void submitMove(UUID roundId, String username, Move move) {
+        var player = userRepository.findByUsername(username).orElseThrow();
+        processMove(new GameMoveEvent(roundId, player.getId(), move));
     }
 
     private void resolve(GameRound round) {
@@ -145,19 +157,27 @@ public class GameService {
     }
 
     @Transactional
-    public void acceptChallenge(UUID roundId, String username) {
+    public ChallengeResponse acceptChallenge(UUID roundId, String username) {
         var round = gameRoundRepository.findById(roundId).orElseThrow();
         respondToChallenge(roundId, username);
 
         round.setStatus(RoundStatus.IN_PROGRESS);
-        gameRoundRepository.save(round);
+        var saved = gameRoundRepository.save(round);
 
         // notifica o desafiante que o desafio foi aceito
         messagingTemplate.convertAndSendToUser(
                 round.getChallenger().getUsername(),
                 "/queue/challenges",
-                new ChallengeAnswerNotification(round.getId(), round.getChallenged().getUsername(), true)
+                new ChallengeAnswerNotification(
+                        round.getId(),
+                        round.getRoom().getId(),
+                        round.getChallenger().getUsername(),
+                        round.getChallenged().getUsername(),
+                        true
+                )
         );
+
+        return ChallengeResponse.from(saved);
     }
 
     @Transactional
@@ -172,7 +192,13 @@ public class GameService {
         messagingTemplate.convertAndSendToUser(
                 round.getChallenger().getUsername(),
                 "/queue/challenges",
-                new ChallengeAnswerNotification(round.getId(), round.getChallenged().getUsername(), false)
+                new ChallengeAnswerNotification(
+                        round.getId(),
+                        round.getRoom().getId(),
+                        round.getChallenger().getUsername(),
+                        round.getChallenged().getUsername(),
+                        false
+                )
         );
     }
 }
