@@ -1,14 +1,42 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
-import { getRoomMessages } from '../services/roomService'
+import {
+  deleteMessage,
+  getRoomMembers,
+  getRoomMessages,
+} from '../services/roomService'
+import {
+  acceptChallenge,
+  challengeUser,
+  declineChallenge,
+  submitMove,
+} from '../services/gameService'
+import {
+  clearAuthSession,
+  getCurrentUsername,
+  getCurrentUserRole,
+  getSelectedRoomDescription,
+  getSelectedRoomName,
+} from '../services/authSession'
 
 import {
   connectWebSocket,
   disconnectWebSocket,
+  subscribeToChallengeEvents,
+  subscribeToDeletedMessages,
+  subscribeToGameResults,
   subscribeToRoom,
+  subscribeToTyping,
   sendMessage,
+  sendTyping,
 } from '../services/websocketService'
+
+const RPS_MOVES = [
+  { value: 'ROCK', label: 'Pedra' },
+  { value: 'PAPER', label: 'Papel' },
+  { value: 'SCISSORS', label: 'Tesoura' },
+]
 
 function ChatRoomPage() {
   const { roomId } = useParams()
@@ -17,19 +45,50 @@ function ChatRoomPage() {
   const messagesWrapperRef = useRef(null)
   const messagesEndRef = useRef(null)
   const shouldAutoScrollRef = useRef(true)
+  const typingTimeoutRef = useRef(null)
+  const isTypingRef = useRef(false)
 
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [newMessage, setNewMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [members, setMembers] = useState([])
+  const [membersError, setMembersError] = useState('')
+  const [deletingMessageId, setDeletingMessageId] = useState(null)
+  const [openMessageMenuId, setOpenMessageMenuId] = useState(null)
+  const [typingUsers, setTypingUsers] = useState([])
+  const [selectedOpponentId, setSelectedOpponentId] = useState('')
+  const [incomingInvite, setIncomingInvite] = useState(null)
+  const [activeGame, setActiveGame] = useState(null)
+  const [gameResult, setGameResult] = useState(null)
+  const [selectedMove, setSelectedMove] = useState('')
+  const [gameFeedback, setGameFeedback] = useState('')
+  const [gameLoading, setGameLoading] = useState(false)
 
-  const username = localStorage.getItem('username') || 'Você'
-  const roomName = localStorage.getItem('selectedRoomName') || 'geral'
-  const roomDescription = localStorage.getItem('selectedRoomDescription') || ''
+  const username = getCurrentUsername() || 'Você'
+  const isAdmin = getCurrentUserRole() === 'ADMIN'
+  const roomName = getSelectedRoomName()
+  const roomDescription = getSelectedRoomDescription()
+
+  function scrollToBottom(behavior = 'smooth') {
+    messagesEndRef.current?.scrollIntoView({
+      behavior,
+      block: 'end',
+    })
+  }
+
+  const stopTyping = useCallback(() => {
+    if (!isTypingRef.current) return
+
+    isTypingRef.current = false
+    sendTyping(roomId, false)
+  }, [roomId])
 
   useEffect(() => {
     async function loadMessages() {
       try {
         setLoading(true)
+        setErrorMessage('')
 
         const data = await getRoomMessages(roomId)
 
@@ -40,12 +99,25 @@ function ChatRoomPage() {
         }, 100)
       } catch (error) {
         console.error(error)
+        setErrorMessage('Não foi possível carregar as mensagens.')
       } finally {
         setLoading(false)
       }
     }
 
+    async function loadMembers() {
+      try {
+        setMembersError('')
+        const data = await getRoomMembers(roomId)
+        setMembers(data)
+      } catch (error) {
+        console.error(error)
+        setMembersError('Não foi possível carregar os membros.')
+      }
+    }
+
     loadMessages()
+    loadMembers()
 
     const client = connectWebSocket()
 
@@ -56,25 +128,86 @@ function ChatRoomPage() {
           message,
         ])
       })
+
+      subscribeToTyping(roomId, (event) => {
+        if (event.username === username) return
+
+        setTypingUsers((previousUsers) => {
+          if (event.typing) {
+            return previousUsers.includes(event.username)
+              ? previousUsers
+              : [...previousUsers, event.username]
+          }
+
+          return previousUsers.filter((user) => user !== event.username)
+        })
+      })
+
+      subscribeToDeletedMessages(roomId, (event) => {
+        setMessages((previousMessages) =>
+          previousMessages.filter((message) => message.id !== event.messageId)
+        )
+      })
+
+      subscribeToChallengeEvents((event) => {
+        if (event.roomId && event.roomId !== roomId) return
+
+        if (typeof event.accepted === 'boolean') {
+          if (event.accepted) {
+            setActiveGame({
+              roundId: event.roundId,
+              roomId: event.roomId,
+              challengerUsername: event.challengerUsername,
+              challengedUsername: event.respondentUsername,
+              status: 'IN_PROGRESS',
+            })
+            setGameResult(null)
+            setGameFeedback(`${event.respondentUsername} aceitou o desafio.`)
+            return
+          }
+
+          setActiveGame(null)
+          setGameFeedback(`${event.respondentUsername} recusou o desafio.`)
+          return
+        }
+
+        setIncomingInvite(event)
+        setGameFeedback('')
+      })
+
+      subscribeToGameResults((event) => {
+        if (event.roomId !== roomId) return
+
+        setActiveGame({
+          roundId: event.roundId,
+          roomId: event.roomId,
+          challengerUsername: event.challengerUsername,
+          challengedUsername: event.challengedUsername,
+          status: event.status,
+        })
+
+        if (event.status === 'FINISHED') {
+          setGameResult(event)
+          setGameFeedback('')
+          return
+        }
+
+        setGameFeedback('Jogada enviada. Aguardando o outro jogador.')
+      })
     }
 
     return () => {
+      window.clearTimeout(typingTimeoutRef.current)
+      stopTyping()
       disconnectWebSocket()
     }
-  }, [roomId])
+  }, [roomId, stopTyping, username])
 
   useEffect(() => {
     if (shouldAutoScrollRef.current) {
       scrollToBottom('smooth')
     }
   }, [messages])
-
-  function scrollToBottom(behavior = 'smooth') {
-    messagesEndRef.current?.scrollIntoView({
-      behavior,
-      block: 'end',
-    })
-  }
 
   function handleMessagesScroll() {
     const container = messagesWrapperRef.current
@@ -95,11 +228,147 @@ function ChatRoomPage() {
     shouldAutoScrollRef.current = true
 
     sendMessage(roomId, newMessage)
+    stopTyping()
     setNewMessage('')
   }
 
+  function handleMessageChange(event) {
+    const value = event.target.value
+    setNewMessage(value)
+
+    if (!value.trim()) {
+      window.clearTimeout(typingTimeoutRef.current)
+      stopTyping()
+      return
+    }
+
+    if (!isTypingRef.current) {
+      isTypingRef.current = true
+      sendTyping(roomId, true)
+    }
+
+    window.clearTimeout(typingTimeoutRef.current)
+    typingTimeoutRef.current = window.setTimeout(() => {
+      stopTyping()
+    }, 1200)
+  }
+
+  async function handleDeleteMessage(message) {
+    const confirmed = window.confirm(
+      'Tem certeza que deseja excluir essa mensagem? Essa ação não pode ser desfeita.'
+    )
+
+    if (!confirmed) return
+
+    try {
+      setDeletingMessageId(message.id)
+      setOpenMessageMenuId(null)
+      await deleteMessage(message.id)
+      setMessages((previousMessages) =>
+        previousMessages.filter((currentMessage) => currentMessage.id !== message.id)
+      )
+    } catch (error) {
+      console.error(error)
+      setErrorMessage(
+        error.response?.status === 403
+          ? 'Você não tem permissão para excluir essa mensagem.'
+          : 'Não foi possível excluir essa mensagem.'
+      )
+    } finally {
+      setDeletingMessageId(null)
+    }
+  }
+
+  async function handleChallengeUser() {
+    if (!selectedOpponentId) {
+      setGameFeedback('Escolha um membro da sala para desafiar.')
+      return
+    }
+
+    try {
+      setGameLoading(true)
+      setGameFeedback('')
+      const challenge = await challengeUser(roomId, selectedOpponentId)
+      setActiveGame(challenge)
+      setGameResult(null)
+      setSelectedMove('')
+      setGameFeedback('Desafio enviado. Aguardando resposta.')
+    } catch (error) {
+      console.error(error)
+      setGameFeedback(
+        error.response?.data?.message || 'Não foi possível enviar o desafio.'
+      )
+    } finally {
+      setGameLoading(false)
+    }
+  }
+
+  async function handleAcceptChallenge() {
+    if (!incomingInvite) return
+
+    try {
+      setGameLoading(true)
+      const challenge = await acceptChallenge(incomingInvite.roundId)
+      setActiveGame(challenge)
+      setIncomingInvite(null)
+      setGameResult(null)
+      setSelectedMove('')
+      setGameFeedback('Desafio aceito. Escolha sua jogada.')
+    } catch (error) {
+      console.error(error)
+      setGameFeedback(
+        error.response?.data?.message || 'Não foi possível aceitar o desafio.'
+      )
+    } finally {
+      setGameLoading(false)
+    }
+  }
+
+  async function handleDeclineChallenge() {
+    if (!incomingInvite) return
+
+    try {
+      setGameLoading(true)
+      await declineChallenge(incomingInvite.roundId)
+      setIncomingInvite(null)
+      setGameFeedback('Desafio recusado.')
+    } catch (error) {
+      console.error(error)
+      setGameFeedback(
+        error.response?.data?.message || 'Não foi possível recusar o desafio.'
+      )
+    } finally {
+      setGameLoading(false)
+    }
+  }
+
+  async function handleSubmitMove(move) {
+    if (!activeGame || activeGame.status !== 'IN_PROGRESS' || selectedMove) return
+
+    try {
+      setGameLoading(true)
+      setSelectedMove(move)
+      setGameFeedback('Jogada enviada. Aguardando o outro jogador.')
+      await submitMove(activeGame.roundId, move)
+    } catch (error) {
+      console.error(error)
+      setSelectedMove('')
+      setGameFeedback(
+        error.response?.data?.message || 'Não foi possível enviar sua jogada.'
+      )
+    } finally {
+      setGameLoading(false)
+    }
+  }
+
+  function closeGamePanel() {
+    setActiveGame(null)
+    setGameResult(null)
+    setSelectedMove('')
+  }
+
   function handleLogout() {
-    localStorage.clear()
+    clearAuthSession()
     navigate('/')
   }
 
@@ -118,8 +387,25 @@ function ChatRoomPage() {
     return name.charAt(0).toUpperCase()
   }
 
+  function getMoveLabel(move) {
+    return RPS_MOVES.find((option) => option.value === move)?.label || '-'
+  }
+
+  function getGameOutcomeText() {
+    if (!gameResult || gameResult.status !== 'FINISHED') return ''
+    if (!gameResult.winnerUsername) return 'Empate'
+    return gameResult.winnerUsername === username ? 'Vitória' : 'Derrota'
+  }
+
+  function getGameOpponentName() {
+    if (!activeGame) return ''
+    return activeGame.challengerUsername === username
+      ? activeGame.challengedUsername
+      : activeGame.challengerUsername
+  }
+
   return (
-    <div style={styles.app}>
+    <div className="chat-app" style={styles.app}>
       <style>
         {`
           @keyframes floatGlow {
@@ -223,9 +509,40 @@ function ChatRoomPage() {
             box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28) !important;
           }
 
+          .chat-message button:hover {
+            background: rgba(15, 23, 42, 0.62) !important;
+            color: #ffffff !important;
+          }
+
           .chat-channel-item:hover {
             background: rgba(129, 140, 248, 0.12) !important;
             color: #ffffff !important;
+          }
+
+          @media (max-width: 1180px) {
+            .chat-app {
+              grid-template-columns: 72px 260px 1fr !important;
+            }
+
+            .chat-app > aside:last-child {
+              display: none !important;
+            }
+          }
+
+          @media (max-width: 920px) {
+            .chat-app {
+              grid-template-columns: 72px 1fr !important;
+            }
+
+            .chat-app > aside:nth-of-type(2) {
+              display: none !important;
+            }
+          }
+
+          @media (max-height: 760px) {
+            .chat-scroll {
+              padding-block: 20px !important;
+            }
           }
         `}
       </style>
@@ -354,7 +671,13 @@ function ChatRoomPage() {
             </div>
           )}
 
-          {!loading && messages.length === 0 && (
+          {!loading && errorMessage && (
+            <div style={styles.errorState}>
+              {errorMessage}
+            </div>
+          )}
+
+          {!loading && !errorMessage && messages.length === 0 && (
             <div style={styles.emptyState}>
               <div style={styles.emptyIcon}>#</div>
 
@@ -371,6 +694,7 @@ function ChatRoomPage() {
           {!loading &&
             messages.map((message, index) => {
               const isMine = message.senderUsername === username
+              const canDeleteMessage = isAdmin || isMine
 
               return (
                 <div
@@ -406,13 +730,69 @@ function ChatRoomPage() {
                     <p style={styles.messageContent}>
                       {message.content}
                     </p>
+
                   </div>
+
+                  {canDeleteMessage && message.id && (
+                    <div style={styles.messageMenuWrapper}>
+                      <button
+                        type="button"
+                        style={styles.messageMenuButton}
+                        onClick={() =>
+                          setOpenMessageMenuId((currentId) =>
+                            currentId === message.id ? null : message.id
+                          )
+                        }
+                        title="Opções da mensagem"
+                      >
+                        ⋯
+                      </button>
+
+                      {openMessageMenuId === message.id && (
+                        <div
+                          style={{
+                            ...styles.messageMenu,
+                            ...(isMine
+                              ? styles.myMessageMenu
+                              : styles.otherMessageMenu),
+                          }}
+                        >
+                          <button
+                            type="button"
+                            style={{
+                              ...styles.messageMenuItem,
+                              opacity:
+                                deletingMessageId === message.id ? 0.55 : 1,
+                              cursor:
+                                deletingMessageId === message.id
+                                  ? 'not-allowed'
+                                  : 'pointer',
+                            }}
+                            onClick={() => handleDeleteMessage(message)}
+                            disabled={deletingMessageId === message.id}
+                          >
+                            {deletingMessageId === message.id
+                              ? 'Excluindo...'
+                              : 'Excluir'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )
             })}
 
           <div ref={messagesEndRef} />
         </div>
+
+        {typingUsers.length > 0 && (
+          <div style={styles.typingIndicator}>
+            {typingUsers.length === 1
+              ? `${typingUsers[0]} está digitando...`
+              : `${typingUsers.slice(0, 2).join(', ')} estão digitando...`}
+          </div>
+        )}
 
         <form
           style={styles.inputContainer}
@@ -432,7 +812,7 @@ function ChatRoomPage() {
             type="text"
             placeholder={`Conversar em #${roomName}`}
             value={newMessage}
-            onChange={(event) => setNewMessage(event.target.value)}
+            onChange={handleMessageChange}
             style={styles.input}
           />
 
@@ -452,23 +832,33 @@ function ChatRoomPage() {
 
       <aside style={styles.rightPanel}>
         <div style={styles.rightHeader}>
-          <h3 style={styles.rightTitle}>Online</h3>
-          <span style={styles.memberCount}>1</span>
+          <h3 style={styles.rightTitle}>Membros da sala</h3>
+          <span style={styles.memberCount}>{members.length}</span>
         </div>
 
-        <div style={styles.memberCard}>
-          <div style={styles.memberAvatar}>
-            {getInitials(username)}
-          </div>
+        {membersError && (
+          <div style={styles.memberError}>{membersError}</div>
+        )}
 
-          <div style={styles.memberInfo}>
-            <strong style={styles.memberName}>{username}</strong>
+        <div style={styles.membersList}>
+          {members.map((member) => (
+            <div key={member.id || member.username} style={styles.memberCard}>
+              <div style={styles.memberAvatar}>
+                {getInitials(member.username)}
+              </div>
 
-            <div style={styles.onlineRow}>
-              <span style={styles.onlineDot} />
-              <p style={styles.memberStatus}>Disponível</p>
+              <div style={styles.memberInfo}>
+                <strong style={styles.memberName}>{member.username}</strong>
+
+                <div style={styles.onlineRow}>
+                  <span style={styles.onlineDot} />
+                  <p style={styles.memberStatus}>
+                    {member.role === 'ADMIN' ? 'Admin' : 'Membro'}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
 
         <div style={styles.gameCard}>
@@ -481,14 +871,144 @@ function ChatRoomPage() {
           </h2>
 
           <p style={styles.gameText}>
-            Desafios em tempo real vão aparecer aqui.
+            Escolha um membro da sala e envie um desafio em tempo real.
           </p>
 
-          <button style={styles.gameButton} disabled>
-            Em breve
+          {incomingInvite && (
+            <div style={styles.gameInviteCard}>
+              <strong>{incomingInvite.challengerUsername}</strong>
+              <span>te desafiou para jogar.</span>
+
+              <div style={styles.gameInviteActions}>
+                <button
+                  style={styles.acceptGameButton}
+                  onClick={handleAcceptChallenge}
+                  disabled={gameLoading}
+                >
+                  Aceitar
+                </button>
+
+                <button
+                  style={styles.declineGameButton}
+                  onClick={handleDeclineChallenge}
+                  disabled={gameLoading}
+                >
+                  Recusar
+                </button>
+              </div>
+            </div>
+          )}
+
+          <select
+            value={selectedOpponentId}
+            onChange={(event) => setSelectedOpponentId(event.target.value)}
+            style={styles.gameSelect}
+            disabled={gameLoading || Boolean(activeGame)}
+          >
+            <option value="">Escolher jogador</option>
+            {members
+              .filter((member) => member.username !== username)
+              .map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.username}
+                </option>
+              ))}
+          </select>
+
+          <button
+            style={{
+              ...styles.gameButton,
+              opacity: gameLoading || activeGame ? 0.62 : 1,
+              cursor: gameLoading || activeGame ? 'not-allowed' : 'pointer',
+            }}
+            onClick={handleChallengeUser}
+            disabled={gameLoading || Boolean(activeGame)}
+          >
+            {gameLoading
+              ? 'Enviando...'
+              : activeGame?.status === 'WAITING'
+                ? 'Aguardando resposta'
+                : 'Desafiar'}
           </button>
+
+          {gameFeedback && (
+            <p style={styles.gameFeedback}>{gameFeedback}</p>
+          )}
         </div>
       </aside>
+
+      {activeGame && activeGame.status !== 'WAITING' && (
+        <div style={styles.gameModalOverlay}>
+          <div style={styles.gameModal}>
+            <div style={styles.gameModalHeader}>
+              <div>
+                <p style={styles.gameModalEyebrow}>Partida realtime</p>
+                <h2 style={styles.gameModalTitle}>
+                  {getGameOutcomeText() || 'Pedra, Papel e Tesoura'}
+                </h2>
+                <p style={styles.gameModalSubtitle}>
+                  Contra {getGameOpponentName()}
+                </p>
+              </div>
+
+              <button
+                style={styles.gameModalClose}
+                onClick={closeGamePanel}
+                title="Fechar jogo"
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={styles.movesGrid}>
+              {RPS_MOVES.map((move) => (
+                <button
+                  key={move.value}
+                  style={{
+                    ...styles.moveButton,
+                    ...(selectedMove === move.value
+                      ? styles.selectedMoveButton
+                      : {}),
+                  }}
+                  onClick={() => handleSubmitMove(move.value)}
+                  disabled={
+                    gameLoading ||
+                    activeGame.status !== 'IN_PROGRESS' ||
+                    Boolean(selectedMove) ||
+                    gameResult?.status === 'FINISHED'
+                  }
+                >
+                  {move.label}
+                </button>
+              ))}
+            </div>
+
+            {selectedMove && (
+              <p style={styles.gameModalStatus}>
+                Você escolheu {getMoveLabel(selectedMove)}.
+              </p>
+            )}
+
+            {gameResult?.status === 'FINISHED' ? (
+              <div style={styles.resultCard}>
+                <div style={styles.resultRow}>
+                  <span>{gameResult.challengerUsername}</span>
+                  <strong>{getMoveLabel(gameResult.challengerMove)}</strong>
+                </div>
+
+                <div style={styles.resultRow}>
+                  <span>{gameResult.challengedUsername}</span>
+                  <strong>{getMoveLabel(gameResult.challengedMove)}</strong>
+                </div>
+              </div>
+            ) : (
+              <p style={styles.gameModalStatus}>
+                {gameFeedback || 'Escolha sua jogada.'}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -949,6 +1469,19 @@ const styles = {
     padding: '34px',
   },
 
+  errorState: {
+    margin: 'auto',
+    maxWidth: '360px',
+    padding: '14px 16px',
+    borderRadius: '16px',
+    background: 'rgba(248, 113, 113, 0.12)',
+    border: '1px solid rgba(248, 113, 113, 0.22)',
+    color: '#fecaca',
+    fontSize: '14px',
+    fontWeight: 800,
+    textAlign: 'center',
+  },
+
   emptyIcon: {
     width: '88px',
     height: '88px',
@@ -997,6 +1530,7 @@ const styles = {
   },
 
   messageBubble: {
+    position: 'relative',
     maxWidth: '66%',
     padding: '14px 16px',
     borderRadius: '20px',
@@ -1041,6 +1575,68 @@ const styles = {
     fontSize: '15px',
     color: 'rgba(248, 250, 252, 0.92)',
     wordBreak: 'break-word',
+  },
+
+  messageMenuWrapper: {
+    position: 'relative',
+    alignSelf: 'flex-start',
+    marginTop: '2px',
+  },
+
+  messageMenuButton: {
+    width: '30px',
+    height: '30px',
+    borderRadius: '10px',
+    background: 'rgba(2, 6, 23, 0.28)',
+    color: 'rgba(248, 250, 252, 0.72)',
+    fontSize: '18px',
+    lineHeight: 1,
+    fontWeight: 900,
+    display: 'grid',
+    placeItems: 'center',
+    transition: '0.18s ease',
+  },
+
+  messageMenu: {
+    position: 'absolute',
+    top: '34px',
+    minWidth: '118px',
+    padding: '6px',
+    borderRadius: '13px',
+    background: 'rgba(2, 6, 23, 0.94)',
+    border: '1px solid rgba(148, 163, 184, 0.16)',
+    boxShadow: '0 18px 42px rgba(0, 0, 0, 0.34)',
+    backdropFilter: 'blur(16px)',
+    zIndex: 5,
+  },
+
+  myMessageMenu: {
+    right: 0,
+  },
+
+  otherMessageMenu: {
+    left: 0,
+  },
+
+  messageMenuItem: {
+    width: '100%',
+    height: '34px',
+    borderRadius: '9px',
+    background: 'transparent',
+    color: '#fecaca',
+    fontSize: '13px',
+    fontWeight: 900,
+    textAlign: 'left',
+    padding: '0 10px',
+    transition: '0.18s ease',
+  },
+
+  typingIndicator: {
+    minHeight: '28px',
+    padding: '0 28px 4px',
+    color: 'rgba(203, 213, 225, 0.62)',
+    fontSize: '13px',
+    fontWeight: 800,
   },
 
   inputContainer: {
@@ -1143,6 +1739,23 @@ const styles = {
     boxShadow: '0 18px 46px rgba(0, 0, 0, 0.18)',
   },
 
+  membersList: {
+    display: 'grid',
+    gap: '12px',
+    marginBottom: '22px',
+  },
+
+  memberError: {
+    marginBottom: '14px',
+    padding: '12px 14px',
+    borderRadius: '15px',
+    background: 'rgba(248, 113, 113, 0.12)',
+    border: '1px solid rgba(248, 113, 113, 0.22)',
+    color: '#fecaca',
+    fontSize: '13px',
+    fontWeight: 800,
+  },
+
   memberAvatar: {
     width: '46px',
     height: '46px',
@@ -1229,17 +1842,192 @@ const styles = {
     fontSize: '14px',
   },
 
+  gameInviteCard: {
+    position: 'relative',
+    zIndex: 1,
+    display: 'grid',
+    gap: '6px',
+    padding: '13px',
+    borderRadius: '16px',
+    background: 'rgba(2, 6, 23, 0.48)',
+    border: '1px solid rgba(129, 140, 248, 0.18)',
+    color: 'rgba(226, 232, 240, 0.76)',
+    fontSize: '13px',
+    marginBottom: '14px',
+  },
+
+  gameInviteActions: {
+    display: 'flex',
+    gap: '8px',
+    marginTop: '6px',
+  },
+
+  acceptGameButton: {
+    flex: 1,
+    height: '34px',
+    borderRadius: '11px',
+    background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+    color: '#ffffff',
+    fontWeight: 900,
+  },
+
+  declineGameButton: {
+    flex: 1,
+    height: '34px',
+    borderRadius: '11px',
+    background: 'rgba(127, 29, 29, 0.26)',
+    color: '#fecaca',
+    fontWeight: 900,
+    border: '1px solid rgba(248, 113, 113, 0.2)',
+  },
+
+  gameSelect: {
+    position: 'relative',
+    zIndex: 1,
+    width: '100%',
+    height: '42px',
+    borderRadius: '14px',
+    border: '1px solid rgba(148, 163, 184, 0.14)',
+    background: 'rgba(2, 6, 23, 0.56)',
+    color: '#f8fafc',
+    padding: '0 12px',
+    fontWeight: 800,
+    outline: 'none',
+    marginBottom: '10px',
+  },
+
   gameButton: {
     position: 'relative',
     zIndex: 1,
     height: '42px',
+    width: '100%',
     padding: '0 16px',
-    border: '1px solid rgba(148, 163, 184, 0.14)',
+    border: 'none',
     borderRadius: '14px',
-    background: 'rgba(2, 6, 23, 0.45)',
-    color: 'rgba(226, 232, 240, 0.72)',
+    background: 'linear-gradient(135deg, #5865f2, #7c3aed)',
+    color: '#ffffff',
     fontWeight: 900,
-    cursor: 'not-allowed',
+    boxShadow: '0 14px 32px rgba(88, 101, 242, 0.24)',
+  },
+
+  gameFeedback: {
+    position: 'relative',
+    zIndex: 1,
+    margin: '12px 0 0',
+    color: 'rgba(203, 213, 225, 0.68)',
+    fontSize: '13px',
+    lineHeight: 1.5,
+    fontWeight: 800,
+  },
+
+  gameModalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 80,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '24px',
+    background: 'rgba(2, 6, 23, 0.72)',
+    backdropFilter: 'blur(10px)',
+  },
+
+  gameModal: {
+    width: '100%',
+    maxWidth: '460px',
+    borderRadius: '28px',
+    padding: '24px',
+    background:
+      'linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.82))',
+    border: '1px solid rgba(148, 163, 184, 0.16)',
+    boxShadow: '0 34px 90px rgba(0, 0, 0, 0.55)',
+  },
+
+  gameModalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '18px',
+    alignItems: 'flex-start',
+    marginBottom: '20px',
+  },
+
+  gameModalEyebrow: {
+    margin: 0,
+    color: '#a5b4fc',
+    fontSize: '12px',
+    fontWeight: 900,
+    textTransform: 'uppercase',
+    letterSpacing: '0.8px',
+  },
+
+  gameModalTitle: {
+    margin: '6px 0 0',
+    color: '#ffffff',
+    fontSize: '31px',
+    lineHeight: 1.06,
+  },
+
+  gameModalSubtitle: {
+    margin: '8px 0 0',
+    color: 'rgba(203, 213, 225, 0.62)',
+    fontSize: '14px',
+  },
+
+  gameModalClose: {
+    minWidth: '40px',
+    height: '40px',
+    borderRadius: '14px',
+    background: 'rgba(2, 6, 23, 0.55)',
+    color: '#f8fafc',
+    border: '1px solid rgba(148, 163, 184, 0.14)',
+    fontSize: '24px',
+  },
+
+  movesGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '10px',
+  },
+
+  moveButton: {
+    minHeight: '78px',
+    borderRadius: '18px',
+    background: 'rgba(2, 6, 23, 0.52)',
+    border: '1px solid rgba(148, 163, 184, 0.14)',
+    color: '#f8fafc',
+    fontWeight: 950,
+    fontSize: '15px',
+  },
+
+  selectedMoveButton: {
+    background: 'linear-gradient(135deg, #5865f2, #7c3aed)',
+    borderColor: 'rgba(165, 180, 252, 0.42)',
+    boxShadow: '0 16px 34px rgba(88, 101, 242, 0.28)',
+  },
+
+  gameModalStatus: {
+    margin: '16px 0 0',
+    color: 'rgba(203, 213, 225, 0.68)',
+    fontSize: '14px',
+    fontWeight: 800,
+    textAlign: 'center',
+  },
+
+  resultCard: {
+    display: 'grid',
+    gap: '10px',
+    marginTop: '18px',
+  },
+
+  resultRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '16px',
+    padding: '12px 14px',
+    borderRadius: '14px',
+    background: 'rgba(2, 6, 23, 0.46)',
+    border: '1px solid rgba(148, 163, 184, 0.12)',
+    color: 'rgba(226, 232, 240, 0.78)',
   },
 }
 

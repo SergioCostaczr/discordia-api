@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { login } from '../services/authService'
+import { saveAuthSession } from '../services/authSession'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -8,27 +9,28 @@ function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   async function handleSubmit(event) {
     event.preventDefault()
 
     if (!username.trim() || !password.trim()) {
-      alert('Preencha usuário e senha')
+      setErrorMessage('Preencha usuário e senha.')
       return
     }
 
     try {
       setLoading(true)
+      setErrorMessage('')
 
       const data = await login(username, password)
 
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('username', username)
+      saveAuthSession(data.token, username)
 
       navigate('/rooms')
     } catch (error) {
       console.error(error)
-      alert('Usuário ou senha inválidos')
+      setErrorMessage('Usuário ou senha inválidos.')
     } finally {
       setLoading(false)
     }
@@ -87,6 +89,30 @@ function LoginPage() {
             color: #ffffff !important;
             text-shadow: 0 0 18px rgba(129, 140, 248, 0.7);
           }
+
+          @media (max-width: 1120px) {
+            .login-content {
+              grid-template-columns: 1fr !important;
+              max-width: 680px !important;
+              gap: 28px !important;
+            }
+
+            .login-content section:first-child {
+              display: none !important;
+            }
+
+            .login-content section:last-child {
+              justify-self: center !important;
+              max-width: 520px !important;
+            }
+          }
+
+          @media (max-height: 760px) {
+            .login-content {
+              transform: scale(0.94);
+              transform-origin: center;
+            }
+          }
         `}
       </style>
 
@@ -94,7 +120,7 @@ function LoginPage() {
       <div style={styles.backgroundOrbTwo} />
       <div style={styles.backgroundOrbThree} />
 
-      <main style={styles.content}>
+      <main className="login-content" style={styles.content}>
         <section style={styles.leftPanel}>
           <div style={styles.badge}>Realtime chat</div>
 
@@ -167,6 +193,10 @@ function LoginPage() {
                 style={styles.input}
               />
             </label>
+
+            {errorMessage && (
+              <p style={styles.errorMessage}>{errorMessage}</p>
+            )}
 
             <button
               className="login-button"
@@ -438,6 +468,18 @@ const styles = {
     letterSpacing: '0.2px',
     transition: '0.22s ease',
     boxShadow: '0 15px 38px rgba(88, 101, 242, 0.35)',
+  },
+
+  errorMessage: {
+    margin: '-4px 0 0',
+    padding: '12px 14px',
+    borderRadius: '14px',
+    background: 'rgba(248, 113, 113, 0.12)',
+    border: '1px solid rgba(248, 113, 113, 0.22)',
+    color: '#fecaca',
+    fontSize: '13px',
+    fontWeight: 800,
+    textAlign: 'left',
   },
 
   divider: {

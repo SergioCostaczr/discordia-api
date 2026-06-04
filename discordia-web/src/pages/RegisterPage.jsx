@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { register } from '../services/authService'
+import { saveAuthSession } from '../services/authSession'
 
 function RegisterPage() {
   const navigate = useNavigate()
@@ -8,32 +9,45 @@ function RegisterPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   async function handleSubmit(event) {
     event.preventDefault()
 
     if (!username.trim() || !password.trim()) {
-      alert('Preencha usuário e senha')
+      setErrorMessage('Preencha usuário e senha.')
       return
     }
 
     if (password.length < 6) {
-      alert('A senha precisa ter pelo menos 6 caracteres')
+      setErrorMessage('A senha precisa ter pelo menos 6 caracteres.')
       return
     }
 
     try {
       setLoading(true)
+      setErrorMessage('')
 
       const data = await register(username, password)
 
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('username', username)
+      saveAuthSession(data.token, username)
 
       navigate('/rooms')
     } catch (error) {
       console.error(error)
-      alert('Erro ao criar conta')
+      const message = error.response?.data?.message || ''
+      const normalizedMessage = message.toLowerCase()
+
+      if (
+        normalizedMessage.includes('exist') ||
+        normalizedMessage.includes('usuario') ||
+        normalizedMessage.includes('usuário')
+      ) {
+        setErrorMessage('Esse usuário já existe. Tente outro nome.')
+        return
+      }
+
+      setErrorMessage('Não foi possível criar sua conta agora.')
     } finally {
       setLoading(false)
     }
@@ -92,6 +106,30 @@ function RegisterPage() {
             color: #ffffff !important;
             text-shadow: 0 0 18px rgba(34, 211, 238, 0.7);
           }
+
+          @media (max-width: 1120px) {
+            .register-content {
+              grid-template-columns: 1fr !important;
+              max-width: 680px !important;
+              gap: 28px !important;
+            }
+
+            .register-content section:first-child {
+              justify-self: center !important;
+              max-width: 520px !important;
+            }
+
+            .register-content section:last-child {
+              display: none !important;
+            }
+          }
+
+          @media (max-height: 760px) {
+            .register-content {
+              transform: scale(0.94);
+              transform-origin: center;
+            }
+          }
         `}
       </style>
 
@@ -99,7 +137,7 @@ function RegisterPage() {
       <div style={styles.backgroundOrbTwo} />
       <div style={styles.backgroundOrbThree} />
 
-      <main style={styles.content}>
+      <main className="register-content" style={styles.content}>
         <section style={styles.card}>
           <div style={styles.logoArea}>
             <div style={styles.logoIcon}>D</div>
@@ -133,6 +171,10 @@ function RegisterPage() {
                 style={styles.input}
               />
             </label>
+
+            {errorMessage && (
+              <p style={styles.errorMessage}>{errorMessage}</p>
+            )}
 
             <button
               className="register-button"
@@ -366,6 +408,18 @@ const styles = {
     letterSpacing: '0.2px',
     transition: '0.22s ease',
     boxShadow: '0 15px 38px rgba(34, 211, 238, 0.24)',
+  },
+
+  errorMessage: {
+    margin: '-4px 0 0',
+    padding: '12px 14px',
+    borderRadius: '14px',
+    background: 'rgba(248, 113, 113, 0.12)',
+    border: '1px solid rgba(248, 113, 113, 0.22)',
+    color: '#fecaca',
+    fontSize: '13px',
+    fontWeight: 800,
+    textAlign: 'left',
   },
 
   divider: {

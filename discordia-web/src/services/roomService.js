@@ -22,7 +22,16 @@ export async function deleteRoom(roomId) {
   await api.delete(`/api/rooms/${roomId}`)
 }
 
+export async function getRoomMembers(roomId) {
+  const response = await api.get(`/api/rooms/${roomId}/members`)
+  return response.data
+}
+
 export async function getRoomMessages(roomId) {
   const response = await api.get(`/api/rooms/${roomId}/messages?page=0&size=20`)
   return response.data
+}
+
+export async function deleteMessage(messageId) {
+  await api.delete(`/api/messages/${messageId}`)
 }

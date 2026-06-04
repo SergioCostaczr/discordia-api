@@ -6,6 +6,13 @@ import {
   createRoom,
   deleteRoom,
 } from '../services/roomService'
+import {
+  clearAuthSession,
+  getCurrentUsername,
+  getCurrentUserRole,
+  saveSelectedRoom,
+} from '../services/authSession'
+import classes from './RoomsPage.module.css'
 
 function RoomsPage() {
   const navigate = useNavigate()
@@ -17,8 +24,10 @@ function RoomsPage() {
   const [newRoomDescription, setNewRoomDescription] = useState('')
   const [creatingRoom, setCreatingRoom] = useState(false)
   const [deletingRoomId, setDeletingRoomId] = useState(null)
+  const [feedbackMessage, setFeedbackMessage] = useState('')
 
-  const username = localStorage.getItem('username') || 'Você'
+  const username = getCurrentUsername() || 'Você'
+  const isAdmin = getCurrentUserRole() === 'ADMIN'
 
   useEffect(() => {
     loadRooms()
@@ -27,11 +36,12 @@ function RoomsPage() {
   async function loadRooms() {
     try {
       setLoading(true)
+      setFeedbackMessage('')
       const data = await getRooms()
       setRooms(data)
     } catch (error) {
       console.error(error)
-      alert('Erro ao carregar salas.')
+      setFeedbackMessage('Não foi possível carregar as salas agora.')
     } finally {
       setLoading(false)
     }
@@ -45,13 +55,12 @@ function RoomsPage() {
 
       if (!message.toLowerCase().includes('já está na sala')) {
         console.error(error)
-        alert(message || 'Erro ao entrar na sala.')
+        setFeedbackMessage(message || 'Não foi possível entrar nessa sala.')
         return
       }
     }
 
-    localStorage.setItem('selectedRoomName', room.name)
-    localStorage.setItem('selectedRoomDescription', room.description || '')
+    saveSelectedRoom(room)
 
     navigate(`/rooms/${room.id}`)
   }
@@ -60,12 +69,13 @@ function RoomsPage() {
     event.preventDefault()
 
     if (!newRoomName.trim()) {
-      alert('Informe o nome da sala.')
+      setFeedbackMessage('Informe o nome da sala.')
       return
     }
 
     try {
       setCreatingRoom(true)
+      setFeedbackMessage('')
 
       await createRoom(newRoomName, newRoomDescription)
 
@@ -73,52 +83,66 @@ function RoomsPage() {
       setNewRoomDescription('')
       setShowCreateModal(false)
 
-      loadRooms()
+      await loadRooms()
     } catch (error) {
       console.error(error)
-      alert('Erro ao criar sala.')
+      if (error.response?.status === 403) {
+        setFeedbackMessage('Você não tem permissão para criar salas.')
+        return
+      }
+
+      setFeedbackMessage('Não foi possível criar a sala agora.')
     } finally {
       setCreatingRoom(false)
     }
   }
 
   async function handleDeleteRoom(event, room) {
-  event.stopPropagation()
+    event.stopPropagation()
 
-  const confirmed = window.confirm(
-    `Tem certeza que deseja excluir a sala "${room.name}"? Essa ação não pode ser desfeita.`
-  )
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir a sala "${room.name}"? Essa ação não pode ser desfeita.`
+    )
 
-  if (!confirmed) return
+    if (!confirmed) return
 
-  try {
-    setDeletingRoomId(room.id)
+    try {
+      setDeletingRoomId(room.id)
+      setFeedbackMessage('')
 
-    await deleteRoom(room.id)
+      await deleteRoom(room.id)
+      await loadRooms()
+    } catch (error) {
+      console.error(error)
 
-    await loadRooms()
-  } catch (error) {
-    console.error(error)
+      if (error.response?.status === 403) {
+        setFeedbackMessage('Você não tem permissão para excluir salas.')
+        return
+      }
 
-    if (error.response?.status === 403) {
-      alert('Você não tem permissão para excluir salas.')
+      setFeedbackMessage('Não foi possível excluir essa sala.')
+    } finally {
+      setDeletingRoomId(null)
+    }
+  }
+
+  function handleOpenCreateModal() {
+    if (!isAdmin) {
+      setFeedbackMessage('Você não tem permissão para criar salas.')
       return
     }
 
-    alert('Erro ao excluir sala.')
-  } finally {
-    setDeletingRoomId(null)
+    setShowCreateModal(true)
   }
-}
 
   function handleLogout() {
-    localStorage.clear()
+    clearAuthSession()
     navigate('/')
   }
 
   return (
     <>
-      <div style={styles.app}>
+      <div className={classes.appShell} style={styles.app}>
         <style>
           {`
             @keyframes fadeUp {
@@ -164,64 +188,6 @@ function RoomsPage() {
               }
             }
 
-            .rooms-main-scroll::-webkit-scrollbar {
-              width: 10px;
-            }
-
-            .rooms-main-scroll::-webkit-scrollbar-track {
-              background: rgba(15, 23, 42, 0.45);
-            }
-
-            .rooms-main-scroll::-webkit-scrollbar-thumb {
-              background: rgba(129, 140, 248, 0.35);
-              border-radius: 999px;
-            }
-
-            .rooms-main-scroll::-webkit-scrollbar-thumb:hover {
-              background: rgba(129, 140, 248, 0.58);
-            }
-
-            .rooms-card:hover {
-              transform: translateY(-7px);
-              border-color: rgba(129, 140, 248, 0.42) !important;
-              box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35), 0 0 36px rgba(88, 101, 242, 0.14) !important;
-            }
-
-            .rooms-card:hover .room-card-glow {
-              opacity: 1;
-              transform: scale(1.18);
-            }
-              .rooms-delete-button:hover {
-            transform: translateY(-2px);
-            background: rgba(127, 29, 29, 0.28) !important;
-            border-color: rgba(248, 113, 113, 0.42) !important;
-            }
-
-            .rooms-action-button:hover,
-            .rooms-refresh-button:hover,
-            .rooms-logout-button:hover,
-            .rooms-modal-close:hover {
-              transform: translateY(-2px);
-              filter: brightness(1.08);
-            }
-
-            .rooms-join-button:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 16px 34px rgba(34, 197, 94, 0.35);
-              filter: brightness(1.08);
-            }
-
-            .rooms-modal-input::placeholder,
-            .rooms-modal-textarea::placeholder {
-              color: rgba(203, 213, 225, 0.42);
-            }
-
-            .rooms-modal-input:focus,
-            .rooms-modal-textarea:focus {
-              border-color: rgba(129, 140, 248, 0.82) !important;
-              box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.14), 0 0 28px rgba(129, 140, 248, 0.14);
-              background: rgba(15, 23, 42, 0.94) !important;
-            }
           `}
         </style>
 
@@ -253,7 +219,7 @@ function RoomsPage() {
             </div>
 
             <button
-              className="rooms-logout-button"
+              className={classes.logoutButton}
               style={styles.topLogoutButton}
               onClick={handleLogout}
             >
@@ -276,16 +242,18 @@ function RoomsPage() {
             </div>
           </div>
 
-          <div style={styles.sidebarButtons}>
-            <button
-              className="rooms-action-button"
-              style={styles.primarySidebarButton}
-              onClick={() => setShowCreateModal(true)}
-            >
-              <span style={styles.buttonIcon}>+</span>
-              Nova sala
-            </button>
-          </div>
+          {isAdmin && (
+            <div style={styles.sidebarButtons}>
+              <button
+                className={classes.actionButton}
+                style={styles.primarySidebarButton}
+                onClick={handleOpenCreateModal}
+              >
+                <span style={styles.buttonIcon}>+</span>
+                Nova sala
+              </button>
+            </div>
+          )}
 
           <div style={styles.sidebarSection}>
             <div style={styles.sidebarSectionHeader}>
@@ -321,7 +289,7 @@ function RoomsPage() {
           </div>
         </aside>
 
-        <main className="rooms-main-scroll" style={styles.main}>
+        <main className={classes.mainScroll} style={styles.main}>
           <header style={styles.header}>
             <div>
               <h2 style={styles.pageTitle}>Escolha uma sala</h2>
@@ -332,7 +300,7 @@ function RoomsPage() {
             </div>
 
             <button
-              className="rooms-refresh-button"
+              className={classes.refreshButton}
               style={styles.refreshButton}
               onClick={loadRooms}
               disabled={loading}
@@ -352,16 +320,18 @@ function RoomsPage() {
               </p>
 
               <div style={styles.heroActions}>
-                <button
-                  className="rooms-action-button"
-                  style={styles.heroPrimaryButton}
-                  onClick={() => setShowCreateModal(true)}
-                >
-                  Criar sala
-                </button>
+                {isAdmin && (
+                  <button
+                    className={classes.actionButton}
+                    style={styles.heroPrimaryButton}
+                    onClick={handleOpenCreateModal}
+                  >
+                    Criar sala
+                  </button>
+                )}
 
                 <button
-                  className="rooms-refresh-button"
+                  className={classes.refreshButton}
                   style={styles.heroSecondaryButton}
                   onClick={loadRooms}
                 >
@@ -386,6 +356,12 @@ function RoomsPage() {
               <span style={styles.sectionCount}>{rooms.length}</span>
             </div>
 
+            {feedbackMessage && (
+              <div style={styles.feedbackBanner}>
+                {feedbackMessage}
+              </div>
+            )}
+
             {loading && (
               <div style={styles.centerState}>
                 <div style={styles.loadingIcon}>#</div>
@@ -402,13 +378,15 @@ function RoomsPage() {
                   Crie a primeira sala para começar a testar o Discordia em tempo real.
                 </p>
 
-                <button
-                  className="rooms-action-button"
-                  style={styles.emptyButton}
-                  onClick={() => setShowCreateModal(true)}
-                >
-                  Criar primeira sala
-                </button>
+                {isAdmin && (
+                  <button
+                    className={classes.actionButton}
+                    style={styles.emptyButton}
+                    onClick={handleOpenCreateModal}
+                  >
+                    Criar primeira sala
+                  </button>
+                )}
               </div>
             )}
 
@@ -416,12 +394,12 @@ function RoomsPage() {
               <div style={styles.roomsGrid}>
                 {rooms.map((room, index) => (
 <article
-  className="rooms-card"
+  className={classes.roomCard}
   key={room.id}
   style={styles.roomCard}
 >
   <div
-    className="room-card-glow"
+    className={classes.cardGlow}
     style={styles.cardGlow}
   />
 
@@ -448,22 +426,24 @@ function RoomsPage() {
     </div>
 
     <div style={styles.roomActions}>
-      <button
-        className="rooms-delete-button"
-        style={{
-          ...styles.deleteButton,
-          opacity: deletingRoomId === room.id ? 0.65 : 1,
-          cursor: deletingRoomId === room.id ? 'not-allowed' : 'pointer',
-        }}
-        onClick={(event) => handleDeleteRoom(event, room)}
-        disabled={deletingRoomId === room.id}
-        title="Excluir sala"
-      >
-        {deletingRoomId === room.id ? '...' : 'Excluir'}
-      </button>
+      {isAdmin && (
+        <button
+          className={classes.deleteButton}
+          style={{
+            ...styles.deleteButton,
+            opacity: deletingRoomId === room.id ? 0.65 : 1,
+            cursor: deletingRoomId === room.id ? 'not-allowed' : 'pointer',
+          }}
+          onClick={(event) => handleDeleteRoom(event, room)}
+          disabled={deletingRoomId === room.id}
+          title="Excluir sala"
+        >
+          {deletingRoomId === room.id ? '...' : 'Excluir'}
+        </button>
+      )}
 
       <button
-        className="rooms-join-button"
+        className={classes.joinButton}
         style={styles.joinButton}
         onClick={() => handleJoinRoom(room)}
       >
@@ -496,7 +476,7 @@ function RoomsPage() {
               </div>
 
               <button
-                className="rooms-modal-close"
+                className={classes.modalClose}
                 style={styles.closeButton}
                 onClick={() => setShowCreateModal(false)}
               >
@@ -508,7 +488,7 @@ function RoomsPage() {
               <label style={styles.modalLabel}>
                 Nome da sala
                 <input
-                  className="rooms-modal-input"
+                  className={classes.modalInput}
                   type="text"
                   placeholder="Ex: geral, estudos, jogos..."
                   value={newRoomName}
@@ -520,7 +500,7 @@ function RoomsPage() {
               <label style={styles.modalLabel}>
                 Descrição
                 <textarea
-                  className="rooms-modal-textarea"
+                  className={classes.modalTextarea}
                   placeholder="Descreva rapidamente o objetivo dessa sala"
                   value={newRoomDescription}
                   onChange={(event) =>
@@ -1072,6 +1052,18 @@ const styles = {
     alignItems: 'center',
     color: '#c7d2fe',
     fontWeight: '900',
+  },
+
+  feedbackBanner: {
+    marginBottom: '18px',
+    padding: '14px 16px',
+    borderRadius: '16px',
+    background: 'rgba(248, 113, 113, 0.12)',
+    border: '1px solid rgba(248, 113, 113, 0.22)',
+    color: '#fecaca',
+    fontSize: '14px',
+    fontWeight: 800,
+    boxShadow: '0 16px 34px rgba(0, 0, 0, 0.16)',
   },
 
   roomsGrid: {

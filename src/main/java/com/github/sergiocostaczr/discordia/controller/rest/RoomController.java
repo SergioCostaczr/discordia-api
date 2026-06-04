@@ -2,6 +2,7 @@ package com.github.sergiocostaczr.discordia.controller.rest;
 
 import com.github.sergiocostaczr.discordia.dto.request.RoomRequest;
 import com.github.sergiocostaczr.discordia.dto.response.ChatMessageResponse;
+import com.github.sergiocostaczr.discordia.dto.response.RoomMemberResponse;
 import com.github.sergiocostaczr.discordia.dto.response.RoomResponse;
 import com.github.sergiocostaczr.discordia.service.ChatService;
 import com.github.sergiocostaczr.discordia.service.RoomService;
@@ -61,5 +62,10 @@ public class RoomController {
             @RequestParam(defaultValue = "20") int size) {
 
         return ResponseEntity.ok(chatService.getHistory(roomId, page, size));
+    }
+
+    @GetMapping("/{roomId}/members")
+    public ResponseEntity<List<RoomMemberResponse>> getMembers(@PathVariable UUID roomId) {
+        return ResponseEntity.ok(roomService.listMembers(roomId));
     }
 }

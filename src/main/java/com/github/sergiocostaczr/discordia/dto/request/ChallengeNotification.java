@@ -4,6 +4,8 @@ import java.util.UUID;
 
 public record ChallengeNotification(
         UUID roundId,
+        UUID roomId,
         String challengerUsername,
+        String challengedUsername,
         String roomName
 ) {}

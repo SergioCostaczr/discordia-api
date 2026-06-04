@@ -1,6 +1,7 @@
 package com.github.sergiocostaczr.discordia.service;
 
 import com.github.sergiocostaczr.discordia.dto.request.RoomRequest;
+import com.github.sergiocostaczr.discordia.dto.response.RoomMemberResponse;
 import com.github.sergiocostaczr.discordia.dto.response.RoomResponse;
 import com.github.sergiocostaczr.discordia.model.entity.Room;
 import com.github.sergiocostaczr.discordia.model.entity.RoomMember;
@@ -76,6 +77,17 @@ public class RoomService {
         messageRepository.deleteByRoomId(roomId);
         roomMemberRepository.deleteByRoomId(roomId);
         roomRepository.delete(room);
+    }
+
+    public List<RoomMemberResponse> listMembers(UUID roomId) {
+        if (!roomRepository.existsById(roomId)) {
+            throw new IllegalArgumentException("Sala não encontrada.");
+        }
+
+        return roomMemberRepository.findByRoomIdOrderByJoinedAtAsc(roomId)
+                .stream()
+                .map(RoomMemberResponse::from)
+                .toList();
     }
 
     public void assertBothInRoom(UUID roomId, UUID userAId, UUID userBId) {
