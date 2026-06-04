@@ -21,7 +21,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
 
   backend:
-    image: discordia-backend
+    image: sergiocostaczr/discordia-backend:latest
     container_name: discordia-prod-backend
     depends_on:
       - postgres
@@ -41,7 +41,7 @@ services:
       - "8080:8080"
 
   frontend:
-    image: discordia-frontend
+    image: sergiocostaczr/discordia-frontend:latest
     container_name: discordia-prod-frontend
     depends_on:
       - backend
