@@ -5,6 +5,9 @@ import {
   deleteMessage,
   getRoomMembers,
   getRoomMessages,
+  joinRoom,
+  leaveRoom,
+  leaveRoomOnUnload,
 } from '../services/roomService'
 import {
   acceptChallenge,
@@ -27,6 +30,7 @@ import {
   subscribeToDeletedMessages,
   subscribeToGameResults,
   subscribeToRoom,
+  subscribeToRoomMembers,
   subscribeToTyping,
   sendMessage,
   sendTyping,
@@ -47,6 +51,8 @@ function ChatRoomPage() {
   const shouldAutoScrollRef = useRef(true)
   const typingTimeoutRef = useRef(null)
   const isTypingRef = useRef(false)
+  const leaveSentRef = useRef(false)
+  const canLeaveOnUnmountRef = useRef(false)
 
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
@@ -84,7 +90,33 @@ function ChatRoomPage() {
     sendTyping(roomId, false)
   }, [roomId])
 
+  const leaveCurrentRoom = useCallback(async ({ keepalive = false } = {}) => {
+    if (leaveSentRef.current) return
+
+    leaveSentRef.current = true
+
+    if (keepalive) {
+      leaveRoomOnUnload(roomId)
+      return
+    }
+
+    try {
+      await leaveRoom(roomId)
+    } catch (error) {
+      leaveSentRef.current = false
+      throw error
+    }
+  }, [roomId])
+
   useEffect(() => {
+    leaveSentRef.current = false
+    canLeaveOnUnmountRef.current = false
+
+    const canLeaveTimeout = window.setTimeout(() => {
+      canLeaveOnUnmountRef.current = true
+    }, 0)
+    let confirmJoinTimeout = null
+
     async function loadMessages() {
       try {
         setLoading(true)
@@ -116,8 +148,34 @@ function ChatRoomPage() {
       }
     }
 
-    loadMessages()
-    loadMembers()
+    async function prepareRoom() {
+      try {
+        await joinRoom(roomId)
+      } catch (error) {
+        console.error(error)
+        setErrorMessage(
+          error.response?.data?.message || 'NÃ£o foi possÃ­vel entrar na sala.'
+        )
+        setLoading(false)
+        return
+      }
+
+      loadMessages()
+      loadMembers()
+
+      confirmJoinTimeout = window.setTimeout(() => {
+        joinRoom(roomId).catch((error) => {
+          console.error(error)
+        })
+      }, 800)
+    }
+
+    function handlePageHide() {
+      leaveCurrentRoom({ keepalive: true })
+    }
+
+    prepareRoom()
+    window.addEventListener('pagehide', handlePageHide)
 
     const client = connectWebSocket()
 
@@ -147,6 +205,11 @@ function ChatRoomPage() {
         setMessages((previousMessages) =>
           previousMessages.filter((message) => message.id !== event.messageId)
         )
+      })
+
+      subscribeToRoomMembers(roomId, (roomMembers) => {
+        setMembers(roomMembers)
+        setMembersError('')
       })
 
       subscribeToChallengeEvents((event) => {
@@ -197,11 +260,20 @@ function ChatRoomPage() {
     }
 
     return () => {
+      window.clearTimeout(canLeaveTimeout)
+      window.clearTimeout(confirmJoinTimeout)
+      window.removeEventListener('pagehide', handlePageHide)
       window.clearTimeout(typingTimeoutRef.current)
       stopTyping()
       disconnectWebSocket()
+
+      if (canLeaveOnUnmountRef.current) {
+        leaveCurrentRoom().catch((error) => {
+          console.error(error)
+        })
+      }
     }
-  }, [roomId, stopTyping, username])
+  }, [leaveCurrentRoom, roomId, stopTyping, username])
 
   useEffect(() => {
     if (shouldAutoScrollRef.current) {
@@ -367,9 +439,25 @@ function ChatRoomPage() {
     setSelectedMove('')
   }
 
-  function handleLogout() {
-    clearAuthSession()
-    navigate('/')
+  async function handleBackToRooms() {
+    try {
+      await leaveCurrentRoom()
+    } catch (error) {
+      console.error(error)
+    } finally {
+      navigate('/rooms')
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await leaveCurrentRoom()
+    } catch (error) {
+      console.error(error)
+    } finally {
+      clearAuthSession()
+      navigate('/')
+    }
   }
 
   function formatTime(dateString) {
@@ -561,7 +649,7 @@ function ChatRoomPage() {
         <button
           className="chat-server-button"
           style={styles.serverButton}
-          onClick={() => navigate('/rooms')}
+          onClick={handleBackToRooms}
           title="Voltar para salas"
         >
           #
@@ -652,7 +740,7 @@ function ChatRoomPage() {
           <button
             className="chat-back-button"
             style={styles.backButton}
-            onClick={() => navigate('/rooms')}
+            onClick={handleBackToRooms}
           >
             Voltar
           </button>

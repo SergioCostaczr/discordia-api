@@ -1,4 +1,5 @@
 import api from '../api/axios'
+import { getAuthToken } from './authSession'
 
 export async function getRooms() {
   const response = await api.get('/api/rooms')
@@ -7,6 +8,24 @@ export async function getRooms() {
 
 export async function joinRoom(roomId) {
   await api.post(`/api/rooms/${roomId}/join`)
+}
+
+export async function leaveRoom(roomId) {
+  await api.delete(`/api/rooms/${roomId}/leave`)
+}
+
+export function leaveRoomOnUnload(roomId) {
+  const token = getAuthToken()
+
+  if (!token) return
+
+  fetch(`http://localhost:8080/api/rooms/${roomId}/leave`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    keepalive: true,
+  }).catch(() => {})
 }
 
 export async function createRoom(name, description) {

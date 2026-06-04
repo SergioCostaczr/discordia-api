@@ -48,6 +48,14 @@ public class RoomController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{roomId}/leave")
+    public ResponseEntity<Void> leave(
+            @PathVariable UUID roomId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        roomService.leave(roomId, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{roomId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable UUID roomId) {

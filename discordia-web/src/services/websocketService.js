@@ -73,6 +73,17 @@ export function subscribeToDeletedMessages(roomId, callback) {
   )
 }
 
+export function subscribeToRoomMembers(roomId, callback) {
+  if (!stompClient || !stompClient.connected) {
+    return
+  }
+
+  return stompClient.subscribe(`/topic/room/${roomId}/members`, (message) => {
+    const body = JSON.parse(message.body)
+    callback(body)
+  })
+}
+
 export function subscribeToChallengeEvents(callback) {
   if (!stompClient || !stompClient.connected) {
     return
