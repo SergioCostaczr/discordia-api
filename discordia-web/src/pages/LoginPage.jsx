@@ -260,6 +260,7 @@ const styles = {
   heroTitle: {
     margin: 0,
     maxWidth: '560px',
+    textAlign: 'left',
     fontSize: 'clamp(36px, 5vw, 58px)',
     lineHeight: 1,
     letterSpacing: 0,
@@ -269,6 +270,7 @@ const styles = {
   heroText: {
     margin: 0,
     maxWidth: '520px',
+    textAlign: 'left',
     color: '#b8bcc6',
     fontSize: '16px',
     lineHeight: 1.65,
@@ -307,10 +309,13 @@ const styles = {
   },
 
   featureContent: {
+    flex: 1,
     minHeight: '42px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
+    alignItems: 'flex-start',
+    textAlign: 'left',
   },
 
   featureTitle: {

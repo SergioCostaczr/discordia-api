@@ -296,7 +296,7 @@ function RoomsPage() {
               </h1>
 
               <p style={styles.heroText}>
-                Crie canais, participe de conversas ao vivo e reúna sua comunidade em um só lugar.
+                Encontre uma sala e entre na discussao em tempo real.
               </p>
 
               <div style={styles.heroActions}>
